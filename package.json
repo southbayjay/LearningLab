@@ -4,11 +4,15 @@
   "description": "LearningLab - AI-Powered Reading Comprehension Worksheet Generator",
   "private": true,
   "scripts": {
-    "dev": "node start-dev.js",
-    "build": "cd server && npm run build",
-    "start": "cd server && npm start",
-    "preview": "cd server && npm run preview",
-    "vercel-build": "node vercel-build.js"
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd server/client && npm run dev",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "cd server/client && npm run build",
+    "build:server": "cd server && npm run build",
+    "start": "cd server && npm run start",
+    "vercel-build": "./vercel-build.sh",
+    "preview": "cd server && npm run preview"
   },
   "workspaces": [
     "server"
