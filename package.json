@@ -1,0 +1,20 @@
+{
+  "name": "learninglab",
+  "version": "1.0.0",
+  "description": "LearningLab - AI-Powered Reading Comprehension Worksheet Generator",
+  "private": true,
+  "scripts": {
+    "dev": "node start-dev.js",
+    "build": "cd server && npm run build",
+    "start": "cd server && npm start",
+    "preview": "cd server && npm run preview"
+  },
+  "workspaces": [
+    "server"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "author": "",
+  "license": "MIT"
+}
