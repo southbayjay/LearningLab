@@ -1,9 +1,6 @@
-# Dependencies
+# Dependencies and build artifacts
 node_modules/
-
-# Build output
-.server/dist
-.server/client/dist
+.server
 
 # Environment files
 .env
@@ -18,12 +15,43 @@ yarn-debug.log*
 yarn-error.log*
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+.vscode/
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
+
+# TypeScript
+*.tsbuildinfo
+
+# Test files
+**/*.test.*
+**/*.spec.*
+
+# Local development
+.vercel/
+
+# Build output (we'll let Vercel handle this)
+dist/
+build/
+
+# Misc
+.cache/
+.temp/
+.tmp/
+coverage/
 *.sln
 *.sw?
+
+# Local development files
+*.local
+
+# Build artifacts
+.cache/
+coverage/
+
+# Test files
+**/__tests__/
+**/*.test.*
+**/*.spec.*
