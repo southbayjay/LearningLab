@@ -1,8 +1,10 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import { fileURLToPath } from 'url';
-import path from 'path';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { visualizer } from 'rollup-plugin-visualizer';
+import basicSsl from '@vitejs/plugin-basic-ssl';
+import legacy from '@vitejs/plugin-legacy';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,6 +18,10 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
+      basicSsl(),
+      legacy({
+        targets: ['defaults', 'not IE 11'],
+      }),
       // Visualize bundle size in development
       mode === 'analyze' && visualizer({
         open: true,
@@ -50,24 +56,24 @@ export default defineConfig(({ mode }) => {
     
     // Build configuration
     build: {
-      outDir: '../public',
+      outDir: '../../dist/client',
       emptyOutDir: true,
-      sourcemap: true, // Generate source maps for better debugging
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: mode === 'production', // Remove console.log in production
-        },
-      },
+      sourcemap: mode !== 'production',
+      minify: mode === 'production' ? 'esbuild' : false,
+      cssCodeSplit: true,
       rollupOptions: {
         input: {
           main: path.resolve(__dirname, 'index.html'),
         },
         output: {
           manualChunks: {
-            // Split vendor libraries into separate chunks
             react: ['react', 'react-dom', 'react-router-dom'],
-            vendor: ['@tanstack/react-query'],
+            vendor: [
+              '@radix-ui/react-dialog', 
+              '@radix-ui/react-dropdown-menu', 
+              '@radix-ui/react-select',
+              '@tanstack/react-query'
+            ],
           },
         },
       },
