@@ -1,36 +1,41 @@
 #!/bin/bash
 
+# ------------------------------
+# Custom Vercel build script
+# ------------------------------
+
+set -e  # Exit immediately on error
+
 echo "Starting custom Vercel build process..."
 
-# Set environment variables
-export NODE_ENV=production
-
-# Navigate to client directory
+# 1. Build client -----------------------------------------------------------
 cd server/client
 
-# Install dependencies
-echo "Installing client dependencies..."
-npm install
+# Install ALL dependencies (prod + dev). NODE_ENV must **not** be production
+npm install --include=dev
 
-# Install Vite and React plugin explicitly
-echo "Installing Vite and plugins..."
+# Ensure Vite/tooling present even if lock file was cached without dev deps
 npm install --no-save vite @vitejs/plugin-react @heroicons/react
 
-# Build the client application
-echo "Building client application..."
+# Build client (outputs to dist/)
+echo "Building client application with Vite..."
 npx vite build
 
-# Create the output directory structure
-echo "Creating output directory structure..."
-mkdir -p ../../.vercel/output/static
+# 2. Prepare .vercel/output directory --------------------------------------
+cd ../..  # back to repo root
 
-# Copy the built files to the Vercel output directory
-echo "Copying built files to Vercel output directory..."
-cp -r dist/* ../../.vercel/output/static/
+OUTPUT_DIR=".vercel/output"
+STATIC_DIR="$OUTPUT_DIR/static"
+FUNCTIONS_DIR="$OUTPUT_DIR/functions"
+API_FUNC_DIR="$FUNCTIONS_DIR/api"
 
-# Create config file for Vercel
-echo "Creating Vercel config file..."
-cat > ../../.vercel/output/config.json << EOF
+mkdir -p "$STATIC_DIR" "$API_FUNC_DIR"
+
+# Copy built static assets
+cp -r server/client/dist/* "$STATIC_DIR/"
+
+echo "Creating Build Output config..."
+cat > "$OUTPUT_DIR/config.json" << EOF
 {
   "version": 3,
   "routes": [
@@ -41,18 +46,11 @@ cat > ../../.vercel/output/config.json << EOF
 }
 EOF
 
-# Create the functions directory
-echo "Setting up API functions..."
-mkdir -p ../../.vercel/output/functions
+# 3. Copy API (serverless) functions ---------------------------------------
+cp -r api/* "$FUNCTIONS_DIR/"
 
-# Navigate back to root
-cd ../..
-
-# Copy API files to functions directory
-cp -r api/* .vercel/output/functions/
-
-# Create a simple API config file
-cat > .vercel/output/functions/api/index.js << EOF
+# Minimal health-check function to confirm API routing works
+cat > "$API_FUNC_DIR/index.js" << EOF
 module.exports = (req, res) => {
   res.status(200).json({ status: 'ok', message: 'API is running' });
 };
