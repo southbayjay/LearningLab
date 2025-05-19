@@ -20,8 +20,11 @@ app.use(cors({
 
 app.use(express.json());
 
+// Create router for API routes
+const router = express.Router();
+
 // Main API route - add your API endpoints here
-app.post('/api/worksheet/generate', (req: Request, res: Response) => {
+router.post('/worksheet/generate', function(req: Request, res: Response) {
   try {
     // This is a placeholder for the actual implementation
     const { text, grade, subject } = req.body;
@@ -48,6 +51,9 @@ app.post('/api/worksheet/generate', (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to generate worksheet' });
   }
 });
+
+// Mount the router at /api
+app.use('/api', router);
 
 // 404 handler for API routes
 app.use('/api/*', (req: Request, res: Response) => {
