@@ -1,5 +1,7 @@
-// @ts-ignore - Ignore type errors for Heroicons
-import { BookOpenIcon, SunIcon, MoonIcon } from '@heroicons/react';
+// Import specific icons from Heroicons
+import BookOpenIcon from '@heroicons/react/24/outline/BookOpenIcon';
+import SunIcon from '@heroicons/react/24/outline/SunIcon';
+import MoonIcon from '@heroicons/react/24/outline/MoonIcon';
 
 interface NavbarProps {
   darkMode: boolean;

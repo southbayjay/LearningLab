@@ -1,5 +1,5 @@
-// @ts-ignore - Ignore type errors for Heroicons
-import { PrinterIcon } from '@heroicons/react';
+// Import specific icon from Heroicons
+import PrinterIcon from '@heroicons/react/24/outline/PrinterIcon';
 
 interface WorksheetData {
   title: string;
