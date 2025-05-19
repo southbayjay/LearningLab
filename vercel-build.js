@@ -16,14 +16,27 @@ const runCommand = (command, cwd = '.') => {
   }
 };
 
+// Function to ensure directory exists
+const ensureDirectoryExists = (dirPath) => {
+  if (!fs.existsSync(dirPath)) {
+    console.log(`Creating directory: ${dirPath}`);
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+};
+
 // Main build function
 const build = async () => {
+  // Create necessary directories
+  ensureDirectoryExists('server/dist');
+  ensureDirectoryExists('server/dist/client');
+  
   // Install and build the client
   console.log('Building client...');
   if (!runCommand('npm install', 'server/client')) {
     process.exit(1);
   }
   
+  // Modify the build command to output to the correct directory
   if (!runCommand('npm run build', 'server/client')) {
     process.exit(1);
   }
@@ -36,6 +49,12 @@ const build = async () => {
   
   if (!runCommand('npm run build:server', 'server')) {
     process.exit(1);
+  }
+
+  // Copy client build to the correct location if needed
+  if (fs.existsSync('server/client/dist') && !fs.existsSync('server/dist/client')) {
+    console.log('Copying client build to server/dist/client...');
+    runCommand('cp -r server/client/dist/* server/dist/client/', '.');
   }
 
   console.log('Build completed successfully!');
