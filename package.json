@@ -7,7 +7,8 @@
     "dev": "node start-dev.js",
     "build": "cd server && npm run build",
     "start": "cd server && npm start",
-    "preview": "cd server && npm run preview"
+    "preview": "cd server && npm run preview",
+    "vercel-build": "cd server && npm install && npm run build"
   },
   "workspaces": [
     "server"
@@ -21,6 +22,13 @@
     "@vercel/node": "^5.1.16",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "openai": "^4.100.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/node": "^20.17.48",
+    "typescript": "^5.0.0"
   }
 }
