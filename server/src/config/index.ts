@@ -1,11 +1,6 @@
 import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { join } from 'path';
 import OpenAI from 'openai';
-
-// Get the current file and directory paths
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 // Load environment variables from the server/.env file
 dotenv.config({ path: join(__dirname, '../../.env') });
@@ -45,3 +40,6 @@ export const OPENAI_CONFIG: OpenAIConfig = {
   temperature: 0.7,
   systemMessage: "You are an expert educator specializing in creating engaging, age-appropriate reading materials. Always respond with properly formatted JSON."
 };
+
+// In CommonJS builds, `__dirname` is available globally. When transpiled by TypeScript
+// with `module: "CommonJS"`, this will work in both dev (ts-node) and production JS.

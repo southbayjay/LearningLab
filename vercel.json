@@ -3,6 +3,7 @@
   "buildCommand": "./vercel-build.sh",
   "env": {
     "NODE_ENV": "production",
-    "CORS_ORIGIN": "https://learninglab-ai.vercel.app"
+    "CORS_ORIGIN": "https://learninglab-ai.vercel.app",
+    "OPENAI_API_KEY": "@openai_api_key"
   }
 }
