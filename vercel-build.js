@@ -16,6 +16,18 @@ const runCommand = (command, cwd = '.') => {
   }
 };
 
+// Function to ensure a package is installed globally
+const ensureGlobalPackage = (packageName) => {
+  console.log(`Ensuring ${packageName} is installed globally...`);
+  try {
+    execSync(`npm list -g ${packageName} || npm install -g ${packageName}`, { stdio: 'inherit' });
+    return true;
+  } catch (error) {
+    console.warn(`Warning: Could not verify/install global ${packageName}. Will try to proceed anyway.`);
+    return false;
+  }
+};
+
 // Function to ensure directory exists
 const ensureDirectoryExists = (dirPath) => {
   if (!fs.existsSync(dirPath)) {
@@ -30,14 +42,23 @@ const build = async () => {
   ensureDirectoryExists('server/dist');
   ensureDirectoryExists('server/dist/client');
   
+  // Ensure Vite is installed globally
+  ensureGlobalPackage('vite');
+  
   // Install and build the client
   console.log('Building client...');
   if (!runCommand('npm install', 'server/client')) {
     process.exit(1);
   }
   
+  // Install dev dependencies explicitly
+  console.log('Installing dev dependencies...');
+  if (!runCommand('npm install --no-save vite @vitejs/plugin-react', 'server/client')) {
+    console.warn('Warning: Could not install Vite dependencies. Will try to proceed anyway.');
+  }
+  
   // Modify the build command to output to the correct directory
-  if (!runCommand('npm run build', 'server/client')) {
+  if (!runCommand('npx vite build --outDir ../dist/client', 'server/client')) {
     process.exit(1);
   }
 
