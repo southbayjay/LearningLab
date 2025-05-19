@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useServerConnection } from './hooks/useServerConnection';
 import { useWorksheetGenerator } from './hooks/useWorksheetGenerator';
 import { Navbar } from './components/Navbar';
@@ -7,6 +7,7 @@ import { WorksheetDisplay } from './components/WorksheetDisplay';
 import { PrintStyles } from './components/PrintStyles';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import type { Worksheet } from './types/worksheet';
+import { GradeLevel, Topic } from './config/constants';
 
 function App() {
   // Dark mode state
@@ -15,8 +16,8 @@ function App() {
   });
 
   // Form state
-  const [gradeLevel, setGradeLevel] = useState('');
-  const [topic, setTopic] = useState('');
+  const [gradeLevel, setGradeLevel] = useState<GradeLevel | ''>('');
+  const [topic, setTopic] = useState<Topic | ''>('');
 
   // Custom hooks with error handling
   const { serverPort, error: serverError } = useServerConnection();
