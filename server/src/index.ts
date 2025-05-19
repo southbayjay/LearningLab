@@ -1,17 +1,12 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
 // Import configuration and routes
 import { PORT, CORS_ORIGIN, NODE_ENV } from './config/index.js';
 import worksheetRoutes from './routes/worksheet.js';
 import { errorHandler } from './middleware/errorHandler.js';
-
-// Get directory name in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 console.log(`🚀 Starting LearningLab server in ${NODE_ENV} mode...`);
 
@@ -65,8 +60,6 @@ process.on('SIGTERM', () => {
     process.exit(0);
   }
 });
-
-
 
 // App and server configuration moved above server declaration
 
