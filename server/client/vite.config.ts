@@ -1,118 +1,81 @@
 // @ts-nocheck
-// Disable TypeScript checking for this file during build
+// Simplified Vite configuration for Vercel deployment
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
-
-// These imports are causing TypeScript errors during build
-// We'll use dynamic imports instead
-let visualizer, basicSsl, legacy, loadEnv;
-try {
-  visualizer = require('rollup-plugin-visualizer').visualizer;
-  basicSsl = require('@vitejs/plugin-basic-ssl').default;
-  legacy = require('@vitejs/plugin-legacy').default;
-  loadEnv = require('vite').loadEnv;
-} catch (e) {
-  console.warn('Some Vite plugins could not be loaded:', e.message);
-}
+import { fileURLToPath } from 'url';
+import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-  // Load env file based on `mode` in the current directory.
-  // Set the third parameter to '' to load all env variables regardless of the `VITE_` prefix.
-  const env = loadEnv(mode, process.cwd(), '');
+export default defineConfig({
+  plugins: [
+    react()
+  ],
   
-  return {
-    plugins: [
-      react(),
-      basicSsl(),
-      legacy({
-        targets: ['defaults', 'not IE 11'],
-      }),
-      // Visualize bundle size in development
-      mode === 'analyze' && visualizer({
-        open: true,
-        filename: 'bundle-analyzer.html',
-      }),
-    ].filter(Boolean),
-    
-    // Base public path when served in development or production
-    base: env.VITE_BASE_URL || '/',
-    
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, './src'),
+  // Base public path when served in development or production
+  base: '/',
+  
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  
+  server: {
+    port: 5173,
+    host: true, // Listen on all network interfaces
+    strictPort: true, // Exit if port is already in use
+    open: true, // Open browser on server start
+    proxy: {
+      // Proxy API requests to the backend server
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
-    
-    server: {
-      port: 5173,
-      host: true, // Listen on all network interfaces
-      strictPort: true, // Exit if port is already in use
-      open: true, // Open browser on server start
-      proxy: {
-        // Proxy API requests to the backend server
-        '/api': {
-          target: env.VITE_API_URL || 'http://localhost:3000',
-          changeOrigin: true,
-          secure: false,
-          rewrite: (path) => path.replace(/^\/api/, ''),
-        },
-      },
+  },
+  
+  // Build configuration
+  build: {
+    outDir: '../dist/client',
+    emptyOutDir: true,
+    sourcemap: true,
+    minify: 'esbuild',
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          vendor: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select']
+        }
+      }
     },
-    
-    // Build configuration
-    build: {
-      outDir: '../../dist/client',
-      emptyOutDir: true,
-      sourcemap: mode !== 'production',
-      minify: mode === 'production' ? 'esbuild' : false,
-      cssCodeSplit: true,
-      rollupOptions: {
-        input: {
-          main: path.resolve(__dirname, 'index.html'),
-        },
-        output: {
-          manualChunks: {
-            react: ['react', 'react-dom', 'react-router-dom'],
-            vendor: [
-              '@radix-ui/react-dialog', 
-              '@radix-ui/react-dropdown-menu', 
-              '@radix-ui/react-select',
-              '@tanstack/react-query'
-            ],
-          },
-        },
-      },
-      // Enable brotli compression for better loading performance
-      reportCompressedSize: true,
-      chunkSizeWarningLimit: 1000, // in kBs
+    chunkSizeWarningLimit: 1000
+  },
+  
+  // Environment variables configuration
+  define: {
+    'process.env': {},
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '1.0.0'),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
+  
+  // Optimizations for production
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
+    exclude: []
+  },
+  
+  // CSS configuration
+  css: {
+    devSourcemap: true, // Enable CSS source maps in development
+    modules: {
+      // Configure CSS modules
+      localsConvention: 'camelCaseOnly',
     },
-    
-    // Environment variables configuration
-    define: {
-      'process.env': {},
-      __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '1.0.0'),
-      __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
-    },
-    
-    // Optimize dependencies
-    optimizeDeps: {
-      include: ['react', 'react-dom', 'react-router-dom'],
-      exclude: ['@tanstack/react-query'],
-    },
-    
-    // CSS configuration
-    css: {
-      devSourcemap: true, // Enable CSS source maps in development
-      modules: {
-        // Configure CSS modules
-        localsConvention: 'camelCaseOnly',
-      },
-    },
-  };
+  },
 });
