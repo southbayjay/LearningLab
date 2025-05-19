@@ -41,7 +41,7 @@ export default defineConfig({
   
   // Build configuration
   build: {
-    outDir: '../dist/client',
+    outDir: 'dist',
     emptyOutDir: true,
     sourcemap: true,
     minify: 'esbuild',
