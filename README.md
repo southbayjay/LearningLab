@@ -46,6 +46,32 @@ Before you begin, ensure you have the following installed:
 - npm (v8.0.0 or higher) or yarn
 - A valid OpenAI API key
 
+## 🔄 Latest Updates (May 2025)
+
+- Updated all dependencies to their latest versions
+- Improved compatibility with the latest OpenAI API (v4.28.0)
+- Enhanced security practices
+- Performance optimizations
+
+## 💡 Recommended Improvements
+
+### Security
+- Remove `dangerouslyAllowBrowser: true` flag from OpenAI configuration in server code
+- Implement proper API key rotation and management
+- Add rate limiting to prevent abuse
+
+### Code Quality
+- Migrate backend to TypeScript for better type safety
+- Replace `any` types in frontend with proper interfaces
+- Add comprehensive unit and integration tests
+- Implement a more structured logging solution
+
+### Features
+- Add user authentication for worksheet management
+- Implement worksheet saving and history
+- Add more customization options for worksheets
+- Support for multiple languages
+
 ## 🚀 Installation & Setup
 
 1. **Clone the Repository**

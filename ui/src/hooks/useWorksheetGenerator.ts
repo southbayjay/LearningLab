@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { API_CONFIG } from '../config/constants';
+import { Worksheet } from '../types/worksheet';
 
 interface WorksheetGeneratorState {
-  worksheet: any | null;
+  worksheet: Worksheet | null;
   error: string | null;
   loading: boolean;
   generateWorksheet: (gradeLevel: string, topic: string) => Promise<void>;
 }
 
 export const useWorksheetGenerator = (serverPort: number | null): WorksheetGeneratorState => {
-  const [worksheet, setWorksheet] = useState<any>(null);
+  const [worksheet, setWorksheet] = useState<Worksheet | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -42,9 +43,14 @@ export const useWorksheetGenerator = (serverPort: number | null): WorksheetGener
 
       const data = await response.json();
       setWorksheet(data);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error generating worksheet:', err);
-      setError(err.message || 'Failed to generate worksheet. Please try again.');
+      // Improved error handling with type checking
+      if (err instanceof Error) {
+        setError(err.message || 'Failed to generate worksheet. Please try again.');
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
