@@ -1,7 +1,6 @@
 {
   "version": 2,
   "buildCommand": "./vercel-build.sh",
-  "outputDirectory": ".vercel/output",
   "env": {
     "NODE_ENV": "production",
     "CORS_ORIGIN": "https://learninglab-ai.vercel.app"
