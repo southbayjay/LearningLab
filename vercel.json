@@ -1,25 +1,20 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "api/index.ts", "use": "@vercel/node" },
-    { "src": "api/health.ts", "use": "@vercel/node" },
-    { "src": "server/dist/client/**", "use": "@vercel/static" }
-  ],
-  "routes": [
-    { "src": "/api/health", "dest": "/api/health.ts" },
-    { "src": "/api/(.*)", "dest": "/api/index.ts" },
-    { "src": "/assets/(.*)", "dest": "/server/dist/client/assets/$1" },
-    { "src": "/favicon.ico", "dest": "/server/dist/client/favicon.ico" },
-    { "src": "/(.*)", "dest": "/server/dist/client/index.html" }
+  "buildCommand": "cd server/client && npm install && npm run build",
+  "outputDirectory": "server/client/dist",
+  "framework": "vite",
+  "functions": {
+    "api/*.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "env": {
     "NODE_ENV": "production",
     "CORS_ORIGIN": "https://learninglab-ai.vercel.app"
-  },
-  "build": {
-    "env": {
-      "NODE_ENV": "production"
-    }
-  },
-  "regions": ["iad1"]
+  }
 }
