@@ -9,13 +9,13 @@ interface WorksheetGeneratorState {
   generateWorksheet: (gradeLevel: string, topic: string) => Promise<void>;
 }
 
-export const useWorksheetGenerator = (serverPort: number | null): WorksheetGeneratorState => {
+export const useWorksheetGenerator = (): WorksheetGeneratorState => {
   const [worksheet, setWorksheet] = useState<Worksheet | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const generateWorksheet = async (gradeLevel: string, topic: string) => {
-    if (!serverPort || !gradeLevel || !topic) {
+    if (!gradeLevel || !topic) {
       setError('Please select both grade level and topic before generating.');
       return;
     }
