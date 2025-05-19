@@ -8,7 +8,7 @@
     "build": "cd server && npm run build",
     "start": "cd server && npm start",
     "preview": "cd server && npm run preview",
-    "vercel-build": "cd server && npm install && npm run build"
+    "vercel-build": "node vercel-build.js"
   },
   "workspaces": [
     "server"
