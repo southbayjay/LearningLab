@@ -1,15 +1,7 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "api/*.ts", "use": "@vercel/node" },
-    { "src": "server/client/package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/assets/(.*)", "dest": "/server/client/dist/assets/$1" },
-    { "src": "/favicon.ico", "dest": "/server/client/dist/favicon.ico" },
-    { "src": "/(.*)", "dest": "/server/client/dist/index.html" }
-  ],
+  "buildCommand": "./vercel-build.sh",
+  "outputDirectory": ".vercel/output",
   "env": {
     "NODE_ENV": "production",
     "CORS_ORIGIN": "https://learninglab-ai.vercel.app"
