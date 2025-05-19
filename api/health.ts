@@ -5,6 +5,6 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     status: 'ok',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'production',
-    message: 'API is healthy!'
+    version: '1.0.0'
   });
 }
