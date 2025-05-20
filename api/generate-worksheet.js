@@ -1,53 +1,4 @@
-#!/bin/bash
-
-# ------------------------------
-# Simplified Vercel build script
-# ------------------------------
-
-set -e  # Exit immediately on error
-
-echo "Starting simplified Vercel build process..."
-
-# 1. Build client -----------------------------------------------------------
-cd server/client
-
-# Install ALL dependencies (prod + dev). NODE_ENV must **not** be production
-npm install --include=dev
-
-# Ensure Vite/tooling present even if lock file was cached without dev deps
-npm install --no-save vite @vitejs/plugin-react @heroicons/react
-
-# Build client (outputs to dist/)
-echo "Building client application with Vite..."
-npx vite build
-
-# 2. Prepare public directory ------------------------------------------------
-cd ../..  # back to repo root
-
-# Create public directory
-echo "Creating public directory..."
-mkdir -p public
-
-# Copy built static assets to public
-echo "Copying static assets to public..."
-cp -r server/client/dist/* public/
-
-# 3. Create serverless functions ---------------------------------------------
-echo "Creating serverless functions..."
-mkdir -p api/worksheet
-
-# Create health check endpoints
-mkdir -p api/health
-cat > api/health/index.js << EOF
-module.exports = (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'API is running' });
-};
-EOF
-
-# Create worksheet generation API endpoint with correct path
-mkdir -p api
-cat > api/generate-worksheet.js << EOF
-const OpenAI = require('openai');
+const { OpenAI } = require('openai');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -87,6 +38,23 @@ async function generateWorksheetContent(gradeLevel, topic, complexity = 'medium'
 }
 
 module.exports = async (req, res) => {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
+  // Handle OPTIONS request
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   try {
     const { gradeLevel, topic, complexity = 'medium' } = req.body;
     console.log('Generating worksheet for:', { gradeLevel, topic, complexity });
@@ -101,6 +69,3 @@ module.exports = async (req, res) => {
     });
   }
 };
-EOF
-
-echo "Build process completed successfully!"
