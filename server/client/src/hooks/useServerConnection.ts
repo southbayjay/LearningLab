@@ -7,21 +7,28 @@ interface ServerConnectionState {
 }
 
 export const useServerConnection = (): ServerConnectionState => {
-  const [serverPort, setServerPort] = useState<number | null>(null);
+  const [serverPort, setServerPort] = useState<number | null>(3000); // Always assume server is available in production
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // In production, we don't need to check for server connection
+    // The API endpoints are available at the same domain
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((import.meta as any).env?.PROD) {
+      return;
+    }
+    
     const checkServer = async () => {
       try {
         const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.health}`);
         if (response.ok) {
-          console.log('Server found on port 3000');
+          console.log('Server health check passed');
           setServerPort(3000);
           setError(null);
         }
       } catch (err) {
         console.error('Error connecting to server:', err);
-        setError('Unable to connect to server. Please ensure the server is running on port 3000.');
+        setError('Unable to connect to server. Please ensure the server is running.');
         setServerPort(null);
       }
     };
