@@ -33,6 +33,7 @@
     "@types/cors": "^2.8.18",
     "@types/express": "^5.0.2",
     "@types/node": "^20.17.48",
+    "concurrently": "^9.1.2",
     "typescript": "^5.0.0"
   }
 }
