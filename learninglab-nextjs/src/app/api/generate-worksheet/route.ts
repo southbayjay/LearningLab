@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateWorksheetContent } from '@/lib/openai';
 import { z } from 'zod';
 
+// Configure this route to use Edge Runtime for Cloudflare Pages
+export const runtime = 'edge';
+
 const WorksheetRequestSchema = z.object({
   gradeLevel: z.string().min(1, 'Grade level is required'),
   topic: z.string().min(1, 'Topic is required'),
@@ -38,7 +41,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         error: errorMessage,
-        details: errorDetails
+        details: errorDetails,
+        debug: {
+          hasApiKey: !!process.env.OPENAI_API_KEY,
+          runtime: 'edge'
+        }
       },
       { status: 500 }
     );
@@ -46,5 +53,48 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  return NextResponse.json({ status: 'healthy' });
+  try {
+    // Try different ways to access environment variables in Cloudflare Pages
+    const envKey1 = process.env.OPENAI_API_KEY;
+    const envKey2 = globalThis.process?.env?.OPENAI_API_KEY;
+    const envKey3 = (globalThis as Record<string, unknown>).OPENAI_API_KEY as string | undefined;
+    
+    // Try accessing through Cloudflare context
+    let cfEnvKey: string | undefined;
+    try {
+      const { getRequestContext } = await import('@cloudflare/next-on-pages');
+      const ctx = getRequestContext();
+      cfEnvKey = (ctx?.env as Record<string, unknown>)?.OPENAI_API_KEY as string | undefined;
+    } catch {
+      // Ignore if not available
+    }
+    
+    return NextResponse.json({ 
+      message: 'Worksheet generation API is running',
+      runtime: 'edge',
+      timestamp: new Date().toISOString(),
+      debug: {
+        hasApiKey1: !!envKey1,
+        hasApiKey2: !!envKey2,
+        hasApiKey3: !!envKey3,
+        hasApiKeyCF: !!cfEnvKey,
+        keyLength1: envKey1?.length || 0,
+        keyLength2: envKey2?.length || 0,
+        keyLength3: envKey3?.length || 0,
+        keyLengthCF: cfEnvKey?.length || 0,
+        envKeys: Object.keys(process.env || {}).filter(key => key.includes('OPENAI')),
+        allEnvCount: Object.keys(process.env || {}).length,
+        globalKeys: Object.keys(globalThis).filter(key => key.includes('OPENAI'))
+      },
+      status: 'healthy'
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { 
+        error: 'GET failed',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
 }
