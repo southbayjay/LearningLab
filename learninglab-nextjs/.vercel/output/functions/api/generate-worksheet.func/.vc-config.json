@@ -1,0 +1,18 @@
+{
+  "runtime": "edge",
+  "name": "api/generate-worksheet",
+  "deploymentTarget": "v8-worker",
+  "entrypoint": "index.js",
+  "assets": [],
+  "framework": {
+    "slug": "nextjs",
+    "version": "15.1.8"
+  },
+  "environment": {
+    "__NEXT_BUILD_ID": "RIt97NzteWS92-oGWm9sx",
+    "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "bHxPyLN0XsqZ5VBA/px5Tp6mOxMQdFFddjey6CaJTj8=",
+    "__NEXT_PREVIEW_MODE_ID": "fabffc0edfabdf15d8b3d9bf7475e4b9",
+    "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "7be8f35c6a9f874a7ffe8260573482a24b647e19c7d09d637b1548e589085966",
+    "__NEXT_PREVIEW_MODE_SIGNING_KEY": "7255046922341ca39bc2fe445a2ff5cbe2d94b413bcee39b9d7888c4f1590ce4"
+  }
+}
