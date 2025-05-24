@@ -24,13 +24,14 @@ app.use(express.json());
 const router = express.Router();
 
 // Main API route - add your API endpoints here
-router.post('/worksheet/generate', function(req: Request, res: Response) {
+router.post('/worksheet/generate', (req: Request, res: Response) => {
   try {
     // This is a placeholder for the actual implementation
     const { text, grade, subject } = req.body;
     
     if (!text) {
-      return res.status(400).json({ error: 'Text is required' });
+      res.status(400).json({ error: 'Text is required' });
+      return;
     }
     
     // In a real implementation, this would call the OpenAI API
@@ -73,11 +74,4 @@ app.use((err: ErrorWithStatus, req: Request, res: Response, next: NextFunction) 
 });
 
 // Export the Express app as a Vercel serverless function
-export default async (req: VercelRequest, res: VercelResponse) => {
-  // Log incoming requests in production for debugging
-  if (process.env.NODE_ENV === 'production') {
-    console.log(`API Request: ${req.method} ${req.url}`);
-  }
-  
-  return app(req, res);
-};
+export default app;
