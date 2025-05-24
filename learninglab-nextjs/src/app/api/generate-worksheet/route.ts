@@ -21,11 +21,21 @@ export async function POST(request: NextRequest) {
 
     console.log('Generating worksheet for:', { gradeLevel, topic, complexity });
 
+    // Get Cloudflare environment for API key access
+    let cfEnv: Record<string, unknown> | undefined;
+    try {
+      const { getRequestContext } = await import('@cloudflare/next-on-pages');
+      const ctx = getRequestContext();
+      cfEnv = ctx?.env as Record<string, unknown>;
+    } catch {
+      // Ignore if not available
+    }
+
     // Generate the worksheet using OpenAI
-    const worksheet = await generateWorksheetContent(gradeLevel, topic, complexity);
+    const worksheet = await generateWorksheetContent(gradeLevel, topic, complexity, cfEnv);
 
     return NextResponse.json(worksheet);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error generating worksheet:', error);
     
     if (error instanceof z.ZodError) {
@@ -56,7 +66,7 @@ export async function GET() {
   try {
     // Try different ways to access environment variables in Cloudflare Pages
     const envKey1 = process.env.OPENAI_API_KEY;
-    const envKey2 = globalThis.process?.env?.OPENAI_API_KEY;
+    const envKey2 = (globalThis as { process?: { env?: Record<string, string> } }).process?.env?.OPENAI_API_KEY;
     const envKey3 = (globalThis as Record<string, unknown>).OPENAI_API_KEY as string | undefined;
     
     // Try accessing through Cloudflare context
@@ -84,7 +94,8 @@ export async function GET() {
         keyLengthCF: cfEnvKey?.length || 0,
         envKeys: Object.keys(process.env || {}).filter(key => key.includes('OPENAI')),
         allEnvCount: Object.keys(process.env || {}).length,
-        globalKeys: Object.keys(globalThis).filter(key => key.includes('OPENAI'))
+        globalKeys: Object.keys(globalThis).filter(key => key.includes('OPENAI')),
+        cfEnvKeys: cfEnvKey ? 'CF_ENV_AVAILABLE' : 'CF_ENV_NOT_AVAILABLE'
       },
       status: 'healthy'
     });

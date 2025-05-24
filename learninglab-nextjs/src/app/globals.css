@@ -68,6 +68,16 @@
   }
 }
 
+/* Loading animation */
+@keyframes loading-bar {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 /* Print styles */
 @media print {
   .no-print {

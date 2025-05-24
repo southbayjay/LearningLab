@@ -71,6 +71,42 @@ export const WorksheetGenerator = ({
       >
         {loading ? 'Generating...' : 'Generate Worksheet'}
       </Button>
+
+      {loading && (
+        <div className="space-y-4 mt-6 p-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <div className="flex items-center space-x-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 dark:border-blue-400"></div>
+            <p className="text-blue-800 dark:text-blue-200 font-medium">
+              Please wait, worksheet is being generated...
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-blue-700 dark:text-blue-300">
+              <span>Creating AI-powered content</span>
+              <span>This may take 10-15 seconds</span>
+            </div>
+            <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2.5 overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-400 via-blue-600 to-blue-400 h-2.5 rounded-full animate-[loading-bar_2s_ease-in-out_infinite] bg-[length:200%_100%]"></div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-blue-700 dark:text-blue-300">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span>Analyzing grade level</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+              <span>Generating content</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+              <span>Creating questions</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

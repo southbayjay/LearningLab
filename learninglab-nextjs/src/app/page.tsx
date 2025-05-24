@@ -119,7 +119,7 @@ export default function Home() {
           </div>
         )}
 
-        <WorksheetDisplay worksheet={worksheet} onPrint={handlePrint} />
+        {!loading && <WorksheetDisplay worksheet={worksheet} onPrint={handlePrint} />}
       </main>
 
       {/* Print styles */}
