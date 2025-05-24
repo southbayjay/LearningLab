@@ -12,3 +12,4 @@ pages_build_output_dir = ".vercel/output/static"
 [env.production.vars]
 # OpenAI API key will be set via Cloudflare Pages environment variables
 # Do not commit API keys to the repository for security
+# Updated: 2025-05-23 - Trigger new deployment
