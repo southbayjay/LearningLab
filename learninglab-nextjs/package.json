@@ -18,6 +18,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cookie": "^1.0.2",
     "lucide-react": "^0.511.0",
     "next": "^15.1.8",
     "react": "^19.1.0",
@@ -36,5 +37,11 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
+  },
+  "overrides": {
+    "cookie": "^1.0.2",
+    "esbuild": "^0.25.4",
+    "path-to-regexp": "^8.0.0",
+    "undici": "^6.0.0"
   }
 }

@@ -35,5 +35,10 @@
     "@types/node": "^20.17.50",
     "concurrently": "^9.1.2",
     "typescript": "^5.0.0"
+  },
+  "overrides": {
+    "esbuild": "^0.25.4",
+    "path-to-regexp": "^8.0.0",
+    "undici": "^6.0.0"
   }
 }
