@@ -13,6 +13,14 @@ node_modules/
 /build
 /server/dist
 /client/dist
+.next/
+.vercel/
+
+# Next.js specific
+learninglab-nextjs/node_modules/
+learninglab-nextjs/.next/
+learninglab-nextjs/.vercel/
+learninglab-nextjs/dist/
 
 # Logs
 logs
@@ -46,18 +54,15 @@ coverage/
 npm-debug.log*
 
 # Local development
-.vercel
 .serverless/
 .serverless_plugins/
 
 # IDE
-.idea/
 *.sublime-workspace
 *.sublime-project
 
 # Cache directories
 .cache/
-.next/
 .nuxt/
 .vuepress/dist
 
@@ -67,7 +72,4 @@ coverage/
 # Misc
 *.pem
 .DS_Store
-*.pem
-.vercel
-.env*.local
 actual-port.txt
