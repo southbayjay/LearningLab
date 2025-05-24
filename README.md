@@ -28,7 +28,25 @@ A powerful tool for educators and parents to create engaging reading comprehensi
 
 ## 🛠️ Tech Stack
 
-### Frontend
+### Monorepo Structure
+
+```
+learninglab/
+├── server/                 # Backend server
+│   ├── src/               # Server source code
+│   ├── client/            # Frontend React app
+│   │   ├── src/           # React components and pages
+│   │   ├── public/        # Static assets
+│   │   └── ...
+│   ├── package.json       # Combined dependencies
+│   └── tsconfig.json      # TypeScript config
+├── .gitignore
+└── README.md
+```
+
+### Combined Stack
+
+- **Frontend**
 - **React** - UI library
 - **Tailwind CSS** - Utility-first CSS framework
 - **Shadcn/ui** - UI component library
@@ -72,45 +90,87 @@ Before you begin, ensure you have the following installed:
 - Add more customization options for worksheets
 - Support for multiple languages
 
-## 🚀 Installation & Setup
+## 🚀 Getting Started
 
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/yourusername/LearningLab.git
-   cd LearningLab
-   ```
+### Prerequisites
 
-2. **Backend Setup**
+- Node.js 16+ and npm
+- OpenAI API key
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
    ```bash
-   # Navigate to server directory
+   # Install root dependencies
+   npm install
+   
+   # Install server dependencies
    cd server
-   
-   # Install dependencies
    npm install
    
-   # Configure environment variables
-   cp .env.example .env
-   # Edit .env and add your OpenAI API key
-   
-   # Start the server
-   npm run dev
+   # Install client dependencies
+   cd client
+   npm install
+   cd ../..
    ```
-
-3. **Frontend Setup**
+3. Set up environment variables:
    ```bash
-   # Navigate to UI directory
-   cd ui
-   
-   # Install dependencies
-   npm install
-   
-   # Start the development server
-   npm run dev
+   cp server/.env.example server/.env
+   # Edit the .env file with your OpenAI API key
    ```
 
-4. **Access the Application**
-   - Backend will run on: http://localhost:3001
-   - Frontend will run on: http://localhost:5173
+### Development
+
+Start both frontend and backend in development mode:
+
+```bash
+# From the project root
+npm run dev
+```
+
+This will start:
+- Backend server on `http://localhost:3000`
+- Frontend development server on `http://localhost:5173` with hot reloading
+
+The frontend will automatically proxy API requests to the backend.
+
+### Production Build
+
+```bash
+# Build both frontend and backend
+npm run build
+
+# Start production server
+npm start
+```
+
+The production build will serve the React app from the Express server at `http://localhost:3000`.
+
+### Development Workflow
+
+- **Frontend Development**: Work in `server/client/src/`
+- **Backend Development**: Work in `server/src/`
+- **Shared Types**: Define in `server/src/types/` and import in the frontend
+- **Environment Variables**: Configure in `server/.env`
+
+### Key Scripts
+
+- `npm run dev` - Start both frontend and backend in development mode
+- `npm run dev:server` - Start only the backend server
+- `npm run dev:client` - Start only the frontend development server
+- `npm run build` - Build both frontend and backend for production
+- `npm start` - Start production server
+
+## 🛠️ Tech Stack
+
+### Backend
+
+- **Node.js** with **Express**
+- **TypeScript** for type safety
+- **OpenAI API** for AI-powered content generation
+- **Environment variables** for configuration
+- **RESTful API** design
 
 ## ⚙️ Environment Variables
 

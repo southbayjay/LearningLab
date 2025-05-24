@@ -1,0 +1,57 @@
+# Dependencies and build artifacts
+node_modules/
+.server
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.vscode/
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+
+# TypeScript
+*.tsbuildinfo
+
+# Test files
+**/*.test.*
+**/*.spec.*
+
+# Local development
+.vercel/
+
+# Build output (we'll let Vercel handle this)
+dist/
+build/
+
+# Misc
+.cache/
+.temp/
+.tmp/
+coverage/
+*.sln
+*.sw?
+
+# Local development files
+*.local
+
+# Build artifacts
+.cache/
+coverage/
+
+# Test files
+**/__tests__/
+**/*.test.*
+**/*.spec.*

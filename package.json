@@ -1,0 +1,39 @@
+{
+  "name": "learninglab",
+  "version": "1.0.0",
+  "description": "LearningLab - AI-Powered Reading Comprehension Worksheet Generator",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd server/client && npm run dev",
+    "build": "./vercel-build.sh",
+    "build:client": "cd server/client && npm run build",
+    "build:server": "cd server && npm run build",
+    "start": "cd server && npm run start",
+    "vercel-build": "./vercel-build.sh",
+    "preview": "cd server && npm run preview"
+  },
+  "workspaces": [
+    "server"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@vercel/node": "^5.1.16",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "openai": "^4.100.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/node": "^20.17.48",
+    "concurrently": "^9.1.2",
+    "typescript": "^5.0.0"
+  }
+}

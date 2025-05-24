@@ -1,14 +1,21 @@
 import dotenv from 'dotenv';
+import { join } from 'path';
 import OpenAI from 'openai';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from the server/.env file
+dotenv.config({ path: join(__dirname, '../../.env') });
 
 // Validate required environment variables
-if (!process.env.OPENAI_API_KEY) {
-  console.error('ERROR: OPENAI_API_KEY is missing in environment variables');
-  console.error('Please create a .env file in the server directory with your OpenAI API key');
-  console.error('Example: OPENAI_API_KEY=your_openai_api_key_here');
+const requiredEnvVars = ['OPENAI_API_KEY'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+  console.error('❌ ERROR: Missing required environment variables:');
+  missingVars.forEach(varName => console.error(`  - ${varName}`));
+  console.error('\nPlease create a .env file in the project root with the required variables.');
+  console.error('Example .env file:');
+  console.error('  OPENAI_API_KEY=your_openai_api_key_here');
+  console.error('  PORT=3001');
   process.exit(1);
 }
 
@@ -33,3 +40,6 @@ export const OPENAI_CONFIG: OpenAIConfig = {
   temperature: 0.7,
   systemMessage: "You are an expert educator specializing in creating engaging, age-appropriate reading materials. Always respond with properly formatted JSON."
 };
+
+// In CommonJS builds, `__dirname` is available globally. When transpiled by TypeScript
+// with `module: "CommonJS"`, this will work in both dev (ts-node) and production JS.
