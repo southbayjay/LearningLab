@@ -94,31 +94,34 @@ Before you begin, ensure you have the following installed:
 
 ### Prerequisites
 
-- Node.js 16+ and npm
-- OpenAI API key
+- Node.js 18+ and npm 8+
+- **OpenAI API key** (required) - You must obtain your own API key from [OpenAI's platform](https://platform.openai.com/api-keys)
 
 ### Installation
 
-1. Clone the repository
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/LearningLab.git
+   cd LearningLab
+   ```
+
 2. Install dependencies:
    ```bash
-   # Install root dependencies
+   # Install root dependencies and all workspace dependencies
    npm install
-   
-   # Install server dependencies
-   cd server
-   npm install
-   
-   # Install client dependencies
-   cd client
-   npm install
-   cd ../..
    ```
+
 3. Set up environment variables:
    ```bash
-   cp server/.env.example server/.env
+   # Copy the example environment file
+   cp .env.example .env
+   
    # Edit the .env file with your OpenAI API key
+   # You MUST replace 'your_openai_api_key_here' with your actual OpenAI API key
+   # OPENAI_API_KEY=sk-your-actual-openai-api-key-here
    ```
+
+   **⚠️ Important**: You must provide your own OpenAI API key. Get one from [OpenAI's platform](https://platform.openai.com/api-keys). The application will not work without a valid API key.
 
 ### Development
 
@@ -152,7 +155,7 @@ The production build will serve the React app from the Express server at `http:/
 - **Frontend Development**: Work in `server/client/src/`
 - **Backend Development**: Work in `server/src/`
 - **Shared Types**: Define in `server/src/types/` and import in the frontend
-- **Environment Variables**: Configure in `server/.env`
+- **Environment Variables**: Configure in `.env` (root level)
 
 ### Key Scripts
 
@@ -174,10 +177,10 @@ The production build will serve the React app from the Express server at `http:/
 
 ## ⚙️ Environment Variables
 
-Create a `.env` file in the server directory with the following variables:
+Create a `.env` file in the root directory with the following variables:
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
-PORT=3001
+PORT=3000
 NODE_ENV=development
 CORS_ORIGIN=http://localhost:5173
 ```

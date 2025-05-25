@@ -7,11 +7,10 @@
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd server/client && npm run dev",
-    "build": "./vercel-build.sh",
+    "build": "npm run build:server && npm run build:client",
     "build:client": "cd server/client && npm run build",
     "build:server": "cd server && npm run build",
     "start": "cd server && npm run start",
-    "vercel-build": "./vercel-build.sh",
     "preview": "cd server && npm run preview"
   },
   "workspaces": [
@@ -23,7 +22,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@vercel/node": "^5.1.16",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
