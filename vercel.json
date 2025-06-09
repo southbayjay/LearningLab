@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/generate-worksheet.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "env": {
+    "OPENAI_API_KEY": "@openai_api_key"
+  }
+}

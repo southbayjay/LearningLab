@@ -1,0 +1,13 @@
+# Cloudflare Pages configuration
+name = "learninglab"
+compatibility_date = "2023-12-01"
+
+[build]
+command = "npm run build:client"
+publish = "server/client/dist"
+
+[env.production.vars]
+NODE_ENV = "production"
+
+# Environment variables (set these in Cloudflare Pages dashboard)
+# OPENAI_API_KEY = "your-openai-api-key"
