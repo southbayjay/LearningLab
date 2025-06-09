@@ -1,5 +1,6 @@
-import dotenv from 'dotenv';
 import { join } from 'path';
+
+import dotenv from 'dotenv';
 import OpenAI from 'openai';
 
 // Load environment variables from the server/.env file
@@ -25,7 +26,7 @@ export const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 
 // Initialize OpenAI with explicit configuration
 export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
   // Removed dangerouslyAllowBrowser flag for security reasons
 });
 
@@ -36,9 +37,10 @@ export interface OpenAIConfig {
 }
 
 export const OPENAI_CONFIG: OpenAIConfig = {
-  model: "gpt-3.5-turbo",
+  model: 'gpt-3.5-turbo',
   temperature: 0.7,
-  systemMessage: "You are an expert educator specializing in creating engaging, age-appropriate reading materials. Always respond with properly formatted JSON."
+  systemMessage:
+    'You are an expert educator specializing in creating engaging, age-appropriate reading materials. Always respond with properly formatted JSON.',
 };
 
 // In CommonJS builds, `__dirname` is available globally. When transpiled by TypeScript

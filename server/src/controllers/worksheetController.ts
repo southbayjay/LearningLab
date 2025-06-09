@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+
 import { generateWorksheetContent } from '../services/openaiService';
 
 interface WorksheetRequest {
@@ -18,17 +19,17 @@ export const generateWorksheet = async (req: Request, res: Response): Promise<vo
     console.error('Error generating worksheet:', error);
     let errorMessage = 'Failed to generate worksheet';
     let errorDetails = 'No additional details available';
-    
+
     if (error instanceof Error) {
       errorMessage = error.message || errorMessage;
       // Type assertion for OpenAI error structure
       const openAIError = error as any;
       errorDetails = openAIError.response?.body || errorDetails;
     }
-    
+
     res.status(500).json({
       error: errorMessage,
-      details: errorDetails
+      details: errorDetails,
     });
   }
 };

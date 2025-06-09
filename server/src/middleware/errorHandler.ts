@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+
 import { AppError, AppErrorInterface } from '../utils/AppError.js';
 
 // Error handling middleware with proper type annotations
@@ -17,7 +18,7 @@ export const errorHandler: ErrorRequestHandler = (
     stack: err.stack,
     name: err.name,
     isOperational: err.isOperational || false,
-    errors: err.errors
+    errors: err.errors,
   };
 
   // Log error in development
@@ -29,7 +30,7 @@ export const errorHandler: ErrorRequestHandler = (
       statusCode: error.statusCode,
       path: req.path,
       method: req.method,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -38,7 +39,7 @@ export const errorHandler: ErrorRequestHandler = (
     res.status(400).json({
       status: 'error',
       message: 'Validation Error',
-      errors: error.errors || { message: error.message }
+      errors: error.errors || { message: error.message },
     });
     return next();
   }
@@ -47,7 +48,7 @@ export const errorHandler: ErrorRequestHandler = (
     res.status(404).json({
       status: 'error',
       message: 'Resource not found',
-      details: 'The requested resource could not be found'
+      details: 'The requested resource could not be found',
     });
     return next();
   }
@@ -57,7 +58,7 @@ export const errorHandler: ErrorRequestHandler = (
     res.status(401).json({
       status: 'error',
       message: 'Invalid token',
-      details: 'Please log in again'
+      details: 'Please log in again',
     });
     return next();
   }
@@ -67,7 +68,7 @@ export const errorHandler: ErrorRequestHandler = (
     res.status(401).json({
       status: 'error',
       message: 'Token expired',
-      details: 'Please log in again'
+      details: 'Please log in again',
     });
     return next();
   }
@@ -76,7 +77,7 @@ export const errorHandler: ErrorRequestHandler = (
   if (error.isOperational) {
     res.status(error.statusCode as number).json({
       status: error.status,
-      message: error.message
+      message: error.message,
     });
     return next();
   }
@@ -91,8 +92,8 @@ export const errorHandler: ErrorRequestHandler = (
     message: 'Something went wrong!',
     ...(process.env.NODE_ENV === 'development' && {
       error: error.message,
-      stack: error.stack
-    })
+      stack: error.stack,
+    }),
   });
 
   next();

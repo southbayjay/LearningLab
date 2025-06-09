@@ -1,12 +1,14 @@
-import express, { Request, Response } from 'express';
-import cors from 'cors';
 import path from 'path';
+
+import cors from 'cors';
 import dotenv from 'dotenv';
+import express, { Request, Response } from 'express';
 
 // Import configuration and routes
 import { PORT, CORS_ORIGIN, NODE_ENV } from './config/index.js';
-import worksheetRoutes from './routes/worksheet.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { generalRateLimit, requestSizeLimit, usageMonitor } from './middleware/rateLimiting.js';
+import worksheetRoutes from './routes/worksheet.js';
 
 console.log(`🚀 Starting LearningLab server in ${NODE_ENV} mode...`);
 
@@ -14,11 +16,11 @@ console.log(`🚀 Starting LearningLab server in ${NODE_ENV} mode...`);
 dotenv.config();
 
 // Top-level error handling
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', error => {
   console.error('\n🚨 UNCAUGHT EXCEPTION! Shutting down...');
   console.error(error.name, error.message);
   console.error(error.stack || '');
-  
+
   // Give server time to handle current requests
   setTimeout(() => {
     process.exit(1);
@@ -30,7 +32,7 @@ process.on('unhandledRejection', (reason: unknown) => {
   const error = reason as Error;
   console.error('Unhandled Rejection reason:', error);
   console.error(error.stack || '');
-  
+
   // Check if server is defined before trying to close it
   if (server) {
     server.close(() => {
@@ -63,6 +65,11 @@ process.on('SIGTERM', () => {
 
 // App and server configuration moved above server declaration
 
+// Security middleware (applied first)
+app.use(requestSizeLimit);
+app.use(usageMonitor);
+app.use(generalRateLimit);
+
 // Basic request logging middleware
 app.use((req: Request, _res: Response, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
@@ -70,24 +77,24 @@ app.use((req: Request, _res: Response, next) => {
 });
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1kb' })); // Enforce JSON size limit
+app.use(express.urlencoded({ extended: true, limit: '1kb' })); // Enforce URL encoded size limit
 
 // CORS configuration
 const corsOptions = {
   origin: CORS_ORIGIN,
   credentials: true,
-  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
 };
 
 app.use(cors(corsOptions));
 
 // Simple health check endpoint
 app.get('/api/health', (_req: Request, res: Response) => {
-  res.json({ 
+  res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: NODE_ENV
+    environment: NODE_ENV,
   });
 });
 
@@ -98,10 +105,10 @@ app.use('/api', worksheetRoutes);
 if (isProduction) {
   const publicPath = path.join(__dirname, '../../public');
   console.log(`Serving static files from: ${publicPath}`);
-  
+
   // Serve static files
   app.use(express.static(publicPath));
-  
+
   // Handle React routing, return all requests to React app
   app.get('*', (_req: Request, res: Response) => {
     res.sendFile(path.join(publicPath, 'index.html'));
@@ -161,12 +168,12 @@ if (!isProduction) {
 // 404 handler for unmatched routes
 app.use((req: Request, res: Response) => {
   if (req.path.startsWith('/api')) {
-    res.status(404).json({ 
+    res.status(404).json({
       status: 'error',
       message: 'API endpoint not found',
       path: req.path,
       method: req.method,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } else if (!isProduction) {
     res.redirect('http://localhost:5173/404');
@@ -180,10 +187,12 @@ app.use(errorHandler);
 
 // Start server
 server = app.listen(PORT, () => {
-  console.log(`\n🚀 Server running on port ${PORT} in ${isProduction ? 'production' : 'development'} mode`);
+  console.log(
+    `\n🚀 Server running on port ${PORT} in ${isProduction ? 'production' : 'development'} mode`
+  );
   console.log(`📅 ${new Date().toISOString()}`);
   console.log('----------------------------------------');
-  
+
   if (!isProduction) {
     console.log(`🔗 Frontend dev server: http://localhost:5173`);
     console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);

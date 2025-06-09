@@ -56,22 +56,22 @@ export const generateWorksheetContent = async (
     model: OPENAI_CONFIG.model,
     messages: [
       {
-        role: "system",
-        content: OPENAI_CONFIG.systemMessage
+        role: 'system',
+        content: OPENAI_CONFIG.systemMessage,
       },
       {
-        role: "user",
-        content: prompt
-      }
+        role: 'user',
+        content: prompt,
+      },
     ],
     temperature: OPENAI_CONFIG.temperature,
-    response_format: { type: "json_object" }
+    response_format: { type: 'json_object' },
   });
 
   const content = completion.choices[0].message.content;
   if (!content) {
     throw new Error('OpenAI returned empty content');
   }
-  
+
   return JSON.parse(content) as Worksheet;
 };

@@ -71,23 +71,41 @@ Before you begin, ensure you have the following installed:
 - Enhanced security practices
 - Performance optimizations
 
-## 💡 Recommended Improvements
+## 🔒 Security Features
 
-### Security
-- Remove `dangerouslyAllowBrowser: true` flag from OpenAI configuration in server code
-- Implement proper API key rotation and management
-- Add rate limiting to prevent abuse
+### Abuse Prevention
+- **Rate Limiting**: 10 worksheet generations per hour per IP
+- **Request Size Limits**: Maximum 1KB request payload
+- **Input Validation**: 
+  - Grade level validation (K-12 only)
+  - Topic length limits (3-100 characters)
+  - Inappropriate content filtering
+  - Spam pattern detection
+- **Progressive Delays**: Automatic slowdown after 3 requests
+- **Usage Monitoring**: Comprehensive request logging
+
+### Content Safety
+- Blocks inappropriate topics (violence, adult content, etc.)
+- Validates educational grade levels
+- Prevents spam and abuse patterns
+- Detailed error messages for rejected content
+
+## 💡 Future Improvements
+
+### Security Enhancements
+- User authentication with individual API quotas
+- OpenAI API key rotation and management
+- Request caching to reduce API costs
 
 ### Code Quality
-- Migrate backend to TypeScript for better type safety
-- Replace `any` types in frontend with proper interfaces
 - Add comprehensive unit and integration tests
-- Implement a more structured logging solution
+- Implement structured logging with different levels
+- Enhanced error tracking and monitoring
 
 ### Features
-- Add user authentication for worksheet management
-- Implement worksheet saving and history
-- Add more customization options for worksheets
+- User authentication for worksheet management
+- Worksheet saving and history
+- More customization options for worksheets
 - Support for multiple languages
 
 ## 🚀 Getting Started
@@ -179,10 +197,18 @@ The production build will serve the React app from the Express server at `http:/
 
 Create a `.env` file in the root directory with the following variables:
 ```env
+# Required
 OPENAI_API_KEY=your_openai_api_key_here
 PORT=3000
 NODE_ENV=development
 CORS_ORIGIN=http://localhost:5173
+
+# Security Settings (Optional - secure defaults provided)
+WORKSHEET_RATE_LIMIT_MAX_REQUESTS=10
+WORKSHEET_RATE_LIMIT_WINDOW_MS=3600000
+GENERAL_RATE_LIMIT_MAX_REQUESTS=100
+GENERAL_RATE_LIMIT_WINDOW_MS=900000
+MAX_REQUEST_SIZE=1024
 ```
 
 ## 🔒 Security Notes
