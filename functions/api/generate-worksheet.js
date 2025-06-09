@@ -2,17 +2,17 @@
 // Updated: 2025-06-09 - Force deployment with new API key
 import { OpenAI } from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
 const OPENAI_CONFIG = {
   model: "gpt-3.5-turbo",
   temperature: 0.7,
   systemMessage: "You are an expert educator specializing in creating engaging, age-appropriate reading materials. Always respond with properly formatted JSON."
 };
 
-async function generateWorksheetContent(gradeLevel, topic, complexity = 'medium') {
+async function generateWorksheetContent(gradeLevel, topic, complexity = 'medium', apiKey) {
+  const openai = new OpenAI({
+    apiKey: apiKey
+  });
+
   const prompt = `Create an age-appropriate reading comprehension passage and questions for ${gradeLevel} grade students about ${topic}. 
     Difficulty level: ${complexity}. 
     Include:
@@ -67,6 +67,13 @@ async function generateWorksheetContent(gradeLevel, topic, complexity = 'medium'
 export async function onRequestPost(context) {
   const { request, env } = context;
   
+  // Set CORS headers
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+  
   try {
     // Parse request body
     const body = await request.json();
@@ -77,10 +84,13 @@ export async function onRequestPost(context) {
     // Validate required fields
     if (!gradeLevel || !topic) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: gradeLevel and topic' }),
+        JSON.stringify({ 
+          error: 'Missing required fields', 
+          details: 'gradeLevel and topic are required' 
+        }),
         { 
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
         }
       );
     }
@@ -89,53 +99,54 @@ export async function onRequestPost(context) {
     if (!env.OPENAI_API_KEY) {
       console.error('OpenAI API key not configured');
       return new Response(
-        JSON.stringify({ error: 'OpenAI API key not configured' }),
+        JSON.stringify({ 
+          error: 'Configuration error',
+          details: 'OpenAI API key not configured',
+          debug: {
+            hasApiKey: false,
+            runtime: "edge"
+          }
+        }),
         { 
           status: 500,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
         }
       );
     }
 
     // Generate worksheet
-    const worksheet = await generateWorksheetContent(gradeLevel, topic, complexity);
-    
-    return new Response(
-      JSON.stringify(worksheet),
-      { 
-        status: 200,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type'
-        }
-      }
-    );
-    
+    const worksheet = await generateWorksheetContent(gradeLevel, topic, complexity, env.OPENAI_API_KEY);
+
+    return new Response(JSON.stringify(worksheet), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+
   } catch (error) {
     console.error('Error generating worksheet:', error);
-    return new Response(
-      JSON.stringify({
-        error: error.message || 'Failed to generate worksheet',
-        details: error.response?.body || 'No additional details available'
-      }),
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
+    
+    return new Response(JSON.stringify({
+      error: "Failed to generate worksheet",
+      details: `Failed to generate worksheet: ${error.message}`,
+      debug: {
+        hasApiKey: !!env.OPENAI_API_KEY,
+        runtime: "edge"
       }
-    );
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
   }
 }
 
-// Handle CORS preflight requests
+// Handle OPTIONS requests for CORS
 export async function onRequestOptions() {
   return new Response(null, {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
-    },
+    }
   });
 }
