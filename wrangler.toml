@@ -9,5 +9,10 @@ publish = "server/client/dist"
 [env.production.vars]
 NODE_ENV = "production"
 
-# Environment variables (set these in Cloudflare Pages dashboard)
-# OPENAI_API_KEY = "your-openai-api-key"
+# Environment variables are managed in Cloudflare Pages Dashboard
+# Go to: Cloudflare Pages → LearningLab → Settings → Environment Variables
+# Required variables:
+# - OPENAI_API_KEY: Your OpenAI API key (starts with sk-proj-...)
+
+[[env.production.kv_namespaces]]
+# Add KV namespaces if needed in the future
