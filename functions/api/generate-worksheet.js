@@ -1,4 +1,5 @@
-// Cloudflare Pages Function for generating worksheets
+// Cloudflare Pages API Route for Worksheet Generation
+// Updated: 2025-06-09 - Force deployment with new API key
 import { OpenAI } from 'openai';
 
 const openai = new OpenAI({
