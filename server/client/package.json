@@ -34,7 +34,7 @@
     "@typescript-eslint/eslint-plugin": "^8.8.0",
     "@typescript-eslint/parser": "^8.8.0",
     "@vitejs/plugin-basic-ssl": "^1.2.0",
-    "@vitejs/plugin-legacy": "^5.4.3",
+    "@vitejs/plugin-legacy": "^6.1.1",
     "@vitejs/plugin-react": "^4.4.1",
     "autoprefixer": "^10.4.21",
     "eslint": "^8.57.0",
@@ -44,7 +44,7 @@
     "rollup-plugin-visualizer": "^5.14.0",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.8.3",
-    "vite": "^5.4.19"
+    "vite": "^6.4.3"
   },
   "overrides": {
     "esbuild": "^0.25.4"
