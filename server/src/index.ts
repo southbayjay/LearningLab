@@ -1,4 +1,5 @@
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -103,14 +104,14 @@ app.use('/api', worksheetRoutes);
 
 // Serve static files from the React app in production
 if (isProduction) {
-  const publicPath = path.join(__dirname, '../../public');
+  const publicPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../public');
   console.log(`Serving static files from: ${publicPath}`);
 
   // Serve static files
   app.use(express.static(publicPath));
 
   // Handle React routing, return all requests to React app
-  app.get('*', (_req: Request, res: Response) => {
+  app.get('/*splat', (_req: Request, res: Response) => {
     res.sendFile(path.join(publicPath, 'index.html'));
   });
 }

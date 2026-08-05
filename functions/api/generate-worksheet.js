@@ -101,11 +101,7 @@ export async function onRequestPost(context) {
       return new Response(
         JSON.stringify({ 
           error: 'Configuration error',
-          details: 'OpenAI API key not configured',
-          debug: {
-            hasApiKey: false,
-            runtime: "edge"
-          }
+          details: 'The worksheet service is not configured. Please contact support.'
         }),
         { 
           status: 500,
@@ -123,15 +119,13 @@ export async function onRequestPost(context) {
     });
 
   } catch (error) {
+    // Upstream errors can embed provider details and partially masked API keys,
+    // so they are logged server-side and never forwarded to the client.
     console.error('Error generating worksheet:', error);
     
     return new Response(JSON.stringify({
       error: "Failed to generate worksheet",
-      details: `Failed to generate worksheet: ${error.message}`,
-      debug: {
-        hasApiKey: !!env.OPENAI_API_KEY,
-        runtime: "edge"
-      }
+      details: 'Please try again. If the problem persists, contact support.'
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...corsHeaders }

@@ -64,12 +64,12 @@ const validGradeLevels = [
 
 // Content validation functions
 const validateGradeLevel = (grade: string): boolean => {
-  const normalizedGrade = grade.toLowerCase().trim();
-  return validGradeLevels.some(
-    validGrade =>
-      validGrade.toLowerCase() === normalizedGrade ||
-      validGrade.toLowerCase().includes(normalizedGrade)
-  );
+  // Accepts both bare grades ("3rd", "3") and the labels the UI sends ("3rd Grade")
+  const normalizedGrade = grade
+    .toLowerCase()
+    .trim()
+    .replace(/\s+grade$/, '');
+  return validGradeLevels.some(validGrade => validGrade.toLowerCase() === normalizedGrade);
 };
 
 const validateTopicContent = (topic: string): { isValid: boolean; reason?: string } => {

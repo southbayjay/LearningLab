@@ -2,8 +2,8 @@
   "compilerOptions": {
     /* Base Options */
     "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "Node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -29,12 +29,6 @@
     "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
     "moduleDetection": "force"
-  },
-  "ts-node": {
-    "esm": true,
-    "experimentalSpecifierResolution": "node",
-    "transpileOnly": true,
-    "files": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "**/*.test.ts", "**/*.spec.ts"]
