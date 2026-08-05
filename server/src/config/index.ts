@@ -35,13 +35,12 @@ export const openai = new OpenAI({
 
 export interface OpenAIConfig {
   model: string;
-  temperature: number;
   systemMessage: string;
 }
 
 export const OPENAI_CONFIG: OpenAIConfig = {
-  model: 'gpt-3.5-turbo',
-  temperature: 0.7,
+  // gpt-5-mini only supports the default temperature, so none is configured
+  model: 'gpt-5-mini',
   systemMessage:
     'You are an expert educator specializing in creating engaging, age-appropriate reading materials. Always respond with properly formatted JSON.',
 };

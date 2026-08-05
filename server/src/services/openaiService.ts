@@ -64,7 +64,6 @@ export const generateWorksheetContent = async (
         content: prompt,
       },
     ],
-    temperature: OPENAI_CONFIG.temperature,
     response_format: { type: 'json_object' },
   });
 
