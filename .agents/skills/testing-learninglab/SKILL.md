@@ -24,8 +24,8 @@ The server is a real ESM package (`"type": "module"` + `module: NodeNext`), so a
 
 Express 5 uses path-to-regexp v8, which rejects bare `*` routes with `TypeError: Missing parameter name at index 1: *`. Wildcards must be named (`/*splat`). The SPA-fallback route only registers when `NODE_ENV=production`, so **route-registration bugs are invisible in dev** — always boot production mode too.
 
-## Production static-file gotcha
-`server/src/index.ts` serves `path.join(dirname(import.meta.url), '../../public')`, which from `server/dist/index.js` resolves to the **repo-root `public/`** directory. No build script creates it (`npm run build` writes `server/client/dist`). With `public/` absent the server still boots and does not 500 — `/` returns 404 `Not found` and unknown routes return 404 JSON — but the SPA is not served at all. To test the real production path, `cp -r server/client/dist ./public` first, then `/` and any unknown non-API route return `index.html` (200) while `/api/*` 404s stay JSON. Remove the copied `public/` afterwards.
+## Production static files
+`server/src/index.ts` serves `path.join(dirname(import.meta.url), '../client/dist')`, which from `server/dist/index.js` resolves to `server/client/dist` — the vite build output (fixed in PR #8; it previously pointed at a repo-root `public/` that nothing created). Run `cd server && npm run build` (builds client then server), then in production mode `/` and any unknown non-API route return `index.html` (200) while unknown `/api/*` routes stay 404 JSON. If the client was never built, the server still boots without 500s but serves no SPA.
 
 ## Testing generation without an OPENAI_API_KEY
 The openai Node SDK (v4) honors `OPENAI_BASE_URL`, so you can exercise the entire request path (express.json → zod validation → rate limiting → SDK HTTP call → `JSON.parse` → React render → print) against a local mock:
