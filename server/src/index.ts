@@ -104,7 +104,8 @@ app.use('/api', worksheetRoutes);
 
 // Serve static files from the React app in production
 if (isProduction) {
-  const publicPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../public');
+  // Serve the built client (server/client/dist) relative to dist/index.js
+  const publicPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '../client/dist');
   console.log(`Serving static files from: ${publicPath}`);
 
   // Serve static files
