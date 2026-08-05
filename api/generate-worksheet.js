@@ -5,8 +5,7 @@ const openai = new OpenAI({
 });
 
 const OPENAI_CONFIG = {
-  model: "gpt-3.5-turbo",
-  temperature: 0.7,
+  model: "gpt-5-mini",
   systemMessage: "You are an expert educator specializing in creating engaging, age-appropriate reading materials. Always respond with properly formatted JSON."
 };
 
@@ -25,7 +24,6 @@ async function generateWorksheetContent(gradeLevel, topic, complexity = 'medium'
         content: prompt
       }
     ],
-    temperature: OPENAI_CONFIG.temperature,
     response_format: { type: "json_object" }
   });
 
