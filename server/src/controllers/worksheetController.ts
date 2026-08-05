@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-import { generateWorksheetContent } from '../services/openaiService';
+import { generateWorksheetContent } from '../services/openaiService.js';
 
 interface WorksheetRequest {
   gradeLevel: string;
@@ -16,20 +16,13 @@ export const generateWorksheet = async (req: Request, res: Response): Promise<vo
     const worksheet = await generateWorksheetContent(gradeLevel, topic, complexity);
     res.json(worksheet);
   } catch (error) {
+    // Upstream errors can embed provider details and partially masked API keys,
+    // so they are logged server-side and never forwarded to the client.
     console.error('Error generating worksheet:', error);
-    let errorMessage = 'Failed to generate worksheet';
-    let errorDetails = 'No additional details available';
-
-    if (error instanceof Error) {
-      errorMessage = error.message || errorMessage;
-      // Type assertion for OpenAI error structure
-      const openAIError = error as any;
-      errorDetails = openAIError.response?.body || errorDetails;
-    }
 
     res.status(500).json({
-      error: errorMessage,
-      details: errorDetails,
+      error: 'Failed to generate worksheet',
+      details: 'Please try again. If the problem persists, contact support.',
     });
   }
 };

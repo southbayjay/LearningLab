@@ -62,10 +62,12 @@ module.exports = async (req, res) => {
     const worksheet = await generateWorksheetContent(gradeLevel, topic, complexity);
     res.json(worksheet);
   } catch (error) {
+    // Upstream errors can embed provider details and partially masked API keys,
+    // so they are logged server-side and never forwarded to the client.
     console.error('Error generating worksheet:', error);
     res.status(500).json({
-      error: error.message || 'Failed to generate worksheet',
-      details: error.response?.body || 'No additional details available'
+      error: 'Failed to generate worksheet',
+      details: 'Please try again. If the problem persists, contact support.'
     });
   }
 };

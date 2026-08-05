@@ -57,7 +57,7 @@ router.post('/worksheet/generate', (req: Request, res: Response) => {
 app.use('/api', router);
 
 // 404 handler for API routes
-app.use('/api/*', (req: Request, res: Response) => {
+app.use('/api/*splat', (req: Request, res: Response) => {
   res.status(404).json({ 
     error: 'API endpoint not found',
     path: req.path,

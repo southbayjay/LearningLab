@@ -1,5 +1,5 @@
-import { openai, OPENAI_CONFIG } from '../config/index';
-import { Complexity } from '../middleware/validation';
+import { openai, OPENAI_CONFIG } from '../config/index.js';
+import { Complexity } from '../middleware/validation.js';
 
 // Define the worksheet response types
 export interface MultipleChoiceQuestion {
