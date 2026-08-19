@@ -12,10 +12,6 @@ export const worksheetRateLimit = rateLimit({
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  // Custom key generator to include user agent for better tracking
-  keyGenerator: req => {
-    return `${req.ip}-${req.get('User-Agent')?.slice(0, 50) || 'unknown'}`;
-  },
   // Skip requests that don't consume resources
   skip: req => {
     return req.path === '/api/health';
@@ -28,10 +24,6 @@ export const worksheetSlowDown = slowDown({
   delayAfter: 3, // Allow 3 requests per hour at full speed
   delayMs: hits => hits * 2000, // Add 2 seconds delay for each request after the 3rd
   maxDelayMs: 30000, // Maximum delay of 30 seconds
-  // Custom key generator to match rate limiter
-  keyGenerator: req => {
-    return `${req.ip}-${req.get('User-Agent')?.slice(0, 50) || 'unknown'}`;
-  },
 });
 
 // General API rate limiting (less strict for health checks, etc.)
