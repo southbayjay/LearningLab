@@ -22,17 +22,17 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
-    "express": "^5.1.0",
-    "openai": "^4.100.0"
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "openai": "^7.13.0"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.18",
-    "@types/express": "^5.0.2",
-    "@types/node": "^20.17.50",
-    "concurrently": "^9.1.2",
-    "typescript": "^5.0.0"
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.2",
+    "concurrently": "^10.0.5",
+    "typescript": "^7.0.2"
   },
   "overrides": {
     "esbuild": "^0.25.4",
