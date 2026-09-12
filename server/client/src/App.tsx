@@ -26,7 +26,7 @@ function App() {
     error: worksheetError, 
     loading, 
     generateWorksheet 
-  } = useWorksheetGenerator(serverPort);
+  } = useWorksheetGenerator();
 
   // Dark mode effect
   useEffect(() => {
