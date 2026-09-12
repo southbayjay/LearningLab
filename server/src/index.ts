@@ -14,7 +14,7 @@ import worksheetRoutes from './routes/worksheet.js';
 console.log(`🚀 Starting LearningLab server in ${NODE_ENV} mode...`);
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ quiet: true });
 
 // Top-level error handling
 process.on('uncaughtException', error => {

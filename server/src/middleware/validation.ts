@@ -154,12 +154,12 @@ export const validateWorksheetRequest = (req: Request, res: Response, next: Next
     next();
   } catch (error) {
     if (error instanceof ZodError) {
-      const firstError = error.errors[0];
+      const firstError = error.issues[0];
       res.status(400).json({
         error: 'Invalid request data',
         message: firstError.message,
         field: firstError.path.join('.'),
-        details: error.errors,
+        details: error.issues,
       });
     } else {
       res.status(400).json({

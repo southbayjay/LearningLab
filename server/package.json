@@ -14,11 +14,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "preview": "NODE_ENV=production npm run build && node dist/index.js",
     "clean": "rm -rf dist node_modules && cd client && rm -rf node_modules",
-    "lint": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint . --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=22.12.0"
   },
   "dependencies": {
     "cors": "^2.8.6",
@@ -44,6 +44,6 @@
     "nodemon": "^3.1.14",
     "prettier": "^3.9.6",
     "tsx": "^4.23.13",
-    "typescript": "^7.0.2"
+    "typescript": "^6.0.3"
   }
 }
