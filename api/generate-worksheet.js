@@ -74,16 +74,37 @@ async function generateWorksheetContent(gradeLevel, topic, complexity = 'medium'
   return JSON.parse(content);
 }
 
-module.exports = async (req, res) => {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+// Same-origin requests are always allowed. Additional origins can be
+// allow-listed via ALLOWED_ORIGINS (comma-separated).
+function resolveAllowedOrigin(req) {
+  const origin = req.headers.origin;
+  if (!origin) return null;
+  const proto = req.headers['x-forwarded-proto'] || 'https';
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+  const selfOrigin = `${proto}://${host}`;
+  const allowList = (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
+  return origin === selfOrigin || allowList.includes(origin) ? origin : null;
+}
 
-  // Handle OPTIONS request
+module.exports = async (req, res) => {
+  const allowedOrigin = resolveAllowedOrigin(req);
+  res.setHeader('Vary', 'Origin');
+  if (allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Max-Age', '86400');
+  }
+
+  if (req.headers.origin && !allowedOrigin) {
+    return res.status(403).json({ error: 'Origin not allowed' });
+  }
+
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
+    res.status(204).end();
     return;
   }
 

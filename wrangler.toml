@@ -9,10 +9,19 @@ publish = "server/client/dist"
 [env.production.vars]
 NODE_ENV = "production"
 
-# Environment variables are managed in Cloudflare Pages Dashboard
-# Go to: Cloudflare Pages → LearningLab → Settings → Environment Variables
+# Environment variables and bindings are managed in the Cloudflare Pages Dashboard
+# Go to: Cloudflare Pages → LearningLab → Settings → Environment Variables / Bindings
 # Required variables:
 # - OPENAI_API_KEY: Your OpenAI API key (starts with sk-proj-...)
-
-[[env.production.kv_namespaces]]
-# Add KV namespaces if needed in the future
+# Optional variables:
+# - ALLOWED_ORIGINS: comma-separated extra origins allowed to call /api/*
+#   (same-origin requests are always allowed)
+# Optional bindings:
+# - KV namespace `RATE_LIMIT_KV`: enables per-IP rate limiting of
+#   /api/generate-worksheet (10 requests / hour, mirrors the Express server).
+#   Without it the function logs a warning and applies no limit.
+#
+# For local testing with `wrangler pages dev`, uncomment:
+# [[kv_namespaces]]
+# binding = "RATE_LIMIT_KV"
+# id = "<namespace id>"

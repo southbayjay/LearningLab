@@ -101,97 +101,166 @@ async function generateWorksheetContent(gradeLevel, topic, complexity = 'medium'
   return JSON.parse(content);
 }
 
+// Same-origin requests are always allowed. Additional origins (e.g. a separate
+// marketing site embedding the app) can be allow-listed via the
+// ALLOWED_ORIGINS environment variable as a comma-separated list.
+function resolveAllowedOrigin(request, env) {
+  const origin = request.headers.get('Origin');
+  if (!origin) return null;
+  const selfOrigin = new URL(request.url).origin;
+  const allowList = (env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
+  return origin === selfOrigin || allowList.includes(origin) ? origin : null;
+}
+
+function corsHeaders(allowedOrigin) {
+  const headers = { Vary: 'Origin' };
+  if (allowedOrigin) {
+    headers['Access-Control-Allow-Origin'] = allowedOrigin;
+    headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS';
+    headers['Access-Control-Allow-Headers'] = 'Content-Type';
+    headers['Access-Control-Max-Age'] = '86400';
+  }
+  return headers;
+}
+
+function jsonResponse(body, status, headers = {}) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...headers },
+  });
+}
+
+// Mirrors worksheetRateLimit in server/src/middleware/rateLimiting.ts.
+// Counters live in the RATE_LIMIT_KV namespace (fixed window per client IP).
+// KV is eventually consistent, so the limit is approximate rather than exact;
+// it is a cost-abuse guard, not a hard quota. When the binding is missing the
+// check is skipped so a misconfigured deployment degrades to "unlimited"
+// rather than "down" (a warning is logged on every request).
+const RATE_LIMIT = { windowSeconds: 60 * 60, max: 10 };
+
+async function checkRateLimit(context) {
+  const { request, env } = context;
+  const kv = env.RATE_LIMIT_KV;
+  if (!kv) {
+    console.warn('RATE_LIMIT_KV binding not configured; rate limiting disabled');
+    return { limited: false, headers: {} };
+  }
+
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const windowStart = nowSeconds - (nowSeconds % RATE_LIMIT.windowSeconds);
+  const resetIn = windowStart + RATE_LIMIT.windowSeconds - nowSeconds;
+  const key = `rl:worksheet:${ip}:${windowStart}`;
+
+  try {
+    const count = Number(await kv.get(key)) || 0;
+    const headers = {
+      'RateLimit-Limit': String(RATE_LIMIT.max),
+      'RateLimit-Remaining': String(Math.max(0, RATE_LIMIT.max - count - 1)),
+      'RateLimit-Reset': String(resetIn),
+    };
+    if (count >= RATE_LIMIT.max) {
+      headers['RateLimit-Remaining'] = '0';
+      headers['Retry-After'] = String(resetIn);
+      return { limited: true, headers };
+    }
+    // expirationTtl must be >= 60s; pad so the key outlives its window.
+    context.waitUntil(
+      kv.put(key, String(count + 1), { expirationTtl: RATE_LIMIT.windowSeconds + 60 })
+    );
+    return { limited: false, headers };
+  } catch (error) {
+    console.error('Rate limit check failed; allowing request:', error);
+    return { limited: false, headers: {} };
+  }
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
-  
-  // Set CORS headers
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
-  
+
+  const allowedOrigin = resolveAllowedOrigin(request, env);
+  const cors = corsHeaders(allowedOrigin);
+
+  if (request.headers.get('Origin') && !allowedOrigin) {
+    return jsonResponse({ error: 'Origin not allowed' }, 403, cors);
+  }
+
+  const rateLimit = await checkRateLimit(context);
+  const baseHeaders = { ...cors, ...rateLimit.headers };
+  if (rateLimit.limited) {
+    return jsonResponse(
+      {
+        error: 'Too many worksheet requests',
+        message: `You have exceeded the rate limit of ${RATE_LIMIT.max} worksheets per hour. Please try again later.`,
+        retryAfter: '1 hour',
+      },
+      429,
+      baseHeaders
+    );
+  }
+
   try {
-    // Parse request body
-    const body = await request.json();
-    const { gradeLevel, topic, complexity = 'medium' } = body;
-    
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return jsonResponse({ error: 'Invalid request data', details: 'Body must be JSON' }, 400, baseHeaders);
+    }
+    const { gradeLevel, topic, complexity = 'medium' } = body ?? {};
+
     console.log('Generating worksheet for:', { gradeLevel, topic, complexity });
 
-    // Validate required fields
     if (!gradeLevel || !topic) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'Missing required fields', 
-          details: 'gradeLevel and topic are required' 
-        }),
-        { 
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        }
+      return jsonResponse(
+        { error: 'Missing required fields', details: 'gradeLevel and topic are required' },
+        400,
+        baseHeaders
       );
     }
 
     const validationError = validateWorksheetRequest({ gradeLevel, topic, complexity });
     if (validationError) {
-      return new Response(
-        JSON.stringify({
-          error: 'Invalid request data',
-          details: validationError
-        }),
-        {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        }
-      );
+      return jsonResponse({ error: 'Invalid request data', details: validationError }, 400, baseHeaders);
     }
 
-    // Check if OpenAI API key is available
     if (!env.OPENAI_API_KEY) {
       console.error('OpenAI API key not configured');
-      return new Response(
-        JSON.stringify({ 
+      return jsonResponse(
+        {
           error: 'Configuration error',
-          details: 'The worksheet service is not configured. Please contact support.'
-        }),
-        { 
-          status: 500,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
-        }
+          details: 'The worksheet service is not configured. Please contact support.',
+        },
+        500,
+        baseHeaders
       );
     }
 
-    // Generate worksheet
     const worksheet = await generateWorksheetContent(gradeLevel, topic, complexity, env.OPENAI_API_KEY);
-
-    return new Response(JSON.stringify(worksheet), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-
+    return jsonResponse(worksheet, 200, baseHeaders);
   } catch (error) {
     // Upstream errors can embed provider details and partially masked API keys,
     // so they are logged server-side and never forwarded to the client.
     console.error('Error generating worksheet:', error);
-    
-    return new Response(JSON.stringify({
-      error: "Failed to generate worksheet",
-      details: 'Please try again. If the problem persists, contact support.'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
+    return jsonResponse(
+      {
+        error: 'Failed to generate worksheet',
+        details: 'Please try again. If the problem persists, contact support.',
+      },
+      500,
+      baseHeaders
+    );
   }
 }
 
-// Handle OPTIONS requests for CORS
-export async function onRequestOptions() {
+// CORS preflight
+export async function onRequestOptions(context) {
+  const { request, env } = context;
+  const allowedOrigin = resolveAllowedOrigin(request, env);
   return new Response(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    }
+    status: request.headers.get('Origin') && !allowedOrigin ? 403 : 204,
+    headers: corsHeaders(allowedOrigin),
   });
 }

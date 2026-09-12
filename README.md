@@ -218,6 +218,20 @@ MAX_REQUEST_SIZE=1024
 - Use environment variables for all sensitive data
 - The `.env.example` file is provided as a template
 
+### Serverless deployments (Cloudflare Pages / Vercel)
+
+The `functions/api` (Cloudflare) and `api/` (Vercel) handlers only accept
+browser requests from their own origin. To allow another site to call the API,
+set `ALLOWED_ORIGINS` to a comma-separated list of origins
+(e.g. `https://www.example.com,https://app.example.com`).
+
+On Cloudflare Pages, bind a KV namespace named `RATE_LIMIT_KV` to the project
+(Settings → Bindings → KV namespace) to enable per-IP rate limiting of
+`/api/generate-worksheet` (10 requests per hour, same as the Express server).
+Without the binding the function logs a warning and applies no limit. For a
+stricter, edge-enforced limit, add a Cloudflare WAF rate limiting rule on the
+`/api/*` path; on Vercel use a Firewall rate limiting rule.
+
 ## 🤝 Contributing
 
 1. Fork the repository
