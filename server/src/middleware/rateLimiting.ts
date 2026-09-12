@@ -1,5 +1,5 @@
-import rateLimit from 'express-rate-limit';
-import slowDown from 'express-slow-down';
+import { rateLimit } from 'express-rate-limit';
+import { slowDown } from 'express-slow-down';
 
 // Strict rate limiting for worksheet generation (most expensive operation)
 export const worksheetRateLimit = rateLimit({

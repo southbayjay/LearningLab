@@ -7,7 +7,7 @@ import OpenAI from 'openai';
 const currentDir = dirname(fileURLToPath(import.meta.url));
 
 // Load environment variables from the server/.env file
-dotenv.config({ path: join(currentDir, '../../.env') });
+dotenv.config({ path: join(currentDir, '../../.env'), quiet: true });
 
 // Validate required environment variables
 const requiredEnvVars = ['OPENAI_API_KEY'];
