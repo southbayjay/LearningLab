@@ -6,8 +6,13 @@ description: How to run and end-to-end test the LearningLab worksheet generator 
 # Testing LearningLab locally
 
 ## Layout
-- Client: `server/client` — React 18 + Vite (currently vite 6.x), dev port **5173**.
+- Client: `server/client` — React 19 + Vite 8 (rolldown) + Tailwind 4 via `@tailwindcss/vite` (config still in `tailwind.config.js`, pulled in through `@config` in `src/index.css`), dev port **5173**.
 - API: `server/src` — Express 5, run with `tsx watch`, dev port **3001** (not 3000).
+
+## Node / install
+- Root and server deps require Node **>=22.12** — run `source ~/.nvm/nvm.sh && nvm use 22` in every shell before npm/npx (the default node may be older).
+- `server` is a root npm **workspace** and has no own lockfile: install with `npm install` at the repo root (this also installs server deps), then `npm install` in `server/client`. Root `npm install` may rewrite the `engines.node` metadata in the tracked root `package-lock.json` — check `git diff package-lock.json` and `git checkout -- package-lock.json` if it is only that.
+- Static checks that should pass: root `npm run build` (client), `cd server && npx tsc --noEmit && npx eslint .` (eslint 10 flat config; warnings are pre-existing, only errors matter), `cd server/client && npx tsc --noEmit`.
 - Duplicated serverless copies of the endpoints: `api/generate-worksheet.js` (Vercel-style, CommonJS) and `functions/api/generate-worksheet.js` (Cloudflare Pages, ESM `onRequestPost`). Real production is Cloudflare Pages: static client + `functions/api/*`.
 
 ## Ports / wiring gotcha
@@ -18,7 +23,7 @@ In dev the client does **not** use the vite `/api` proxy: `server/client/src/con
 
 ## Booting both modes (verified working as of PR #6)
 - Dev: `cd server && npm run dev` → `🚀 Server running on port 3001 in development mode`.
-- Production: `cd server && npm run build:server && NODE_ENV=production PORT=3001 node dist/index.js`.
+- Production: `cd server && npx tsc && NODE_ENV=production PORT=3001 node dist/index.js` (after building the client at the root with `npm run build`). `dist/index.js` still reads `server/.env` for `OPENAI_API_KEY` / `OPENAI_BASE_URL`.
 
 The server is a real ESM package (`"type": "module"` + `module: NodeNext`), so any new relative import needs an explicit `.js` extension and `__dirname` is unavailable — use `dirname(fileURLToPath(import.meta.url))`. Historical failures to watch for if these regress: `ReferenceError: __dirname is not defined in ES module scope` (dev) and `ReferenceError: exports is not defined in ES module scope` (prod, tsc emitting CJS).
 
@@ -35,12 +40,28 @@ The openai Node SDK (v4) honors `OPENAI_BASE_URL`, so you can exercise the entir
 2. Start the API with `OPENAI_BASE_URL=http://localhost:8787/v1` and any non-empty `OPENAI_API_KEY`.
 3. Prefix the mock strings with something like `MOCKLLM` so evidence clearly distinguishes mocked from real model output, and always report real-model generation as untested.
 4. Because the mock returns a fixed fixture, two different generations look identical on screen — correlate with the server log line `Generating worksheet for: { gradeLevel: …, topic: … }` to prove the second request actually happened.
+5. Give the mock a configurable delay (e.g. `setTimeout(respond, Number(process.env.MOCK_DELAY_MS||0))`) so the `Generating...` button state / `animate-spin` spinner is observable and screenshot-able; a 4s delay is too short for a screenshot-after-click round trip, 15s is comfortable. Verify the spinner with `svg.animate-spin` → `getAnimations()[0].playState === 'running'`.
+
+## UI controls / styling gotchas
+- The grade/topic dropdowns in `WorksheetGenerator.tsx` are **native `<select>`s**; the Radix `components/ui/select.tsx` exists but is not mounted anywhere, so "test the Radix Select" cannot be done through the page. Use the browser tool's `select_option` on them — a plain `click` on a native `<select>` opens an OS-level popup that can make the browser tool hang (`Browser action failed`) and require `restart`.
+- Tailwind 4 preflight sets `background-color: transparent` on `select`/`input` (Tailwind 3 did not for `select`), and the selects only carry `border-gray-300` (color, no `border` width class), so in light mode they render as borderless plain text on a transparent background after the Tailwind 4 upgrade, whereas Tailwind 3 showed the browser's default gray field. Compare against `origin/main` in a worktree (`git worktree add /home/ubuntu/lab-main origin/main`, run its vite on another port such as 5174 — it will show the CORS "Unable to connect" banner, which is fine for a styling-only comparison) and flag this kind of diff with side-by-side screenshots.
+- Tailwind 4 emits `oklch(...)` colours, so computed-style checks can't compare against `rgb(...)` values from Tailwind 3; compare screenshots or check the class is present + the colour visibly changes. Dark mode toggle = the moon/sun button in the nav; it adds `class="dark"` on `<html>`.
+
+## Testing the Cloudflare Pages function locally
+`npx wrangler pages dev server/client/dist --port 8788 --binding OPENAI_API_KEY=...` works out of the box for exercising `functions/api/*` locally (wrangler 4.x preinstalled; it triggers the client build automatically and creates a `.wrangler/` dir to clean up afterwards).
+
+Gotchas seen with wrangler 4.86:
+- If the local workerd is older than today, startup fails with `This Worker requires compatibility date "<today>"` — pass `--compatibility-date <date it reports as supported>` (e.g. `2026-05-03`).
+- To bind a local KV namespace for the rate limiter: `--kv RATE_LIMIT_KV`. Responses then carry `RateLimit-Limit/Remaining/Reset` headers (fail-open with a warning if the binding is missing).
+- To test a handler from a branch that is NOT checked out, copy it to `/tmp/x/functions/api/generate-worksheet.js` next to a copy of `dist/` and run wrangler from `/tmp/x`; the handler imports `openai`, so symlink the repo root `node_modules` into `/tmp/x` or the Functions bundle fails to build.
+- The serverless handlers do NOT honor `OPENAI_BASE_URL`, so a valid same-origin POST ends in 500 `Failed to generate worksheet` inside workerd with a dummy key — that still proves CORS/validation/rate-limit passed. Foreign `Origin` → 403 `Origin not allowed`.
+- Never `pkill -f <pattern>` from the exec tool if the pattern appears in your own command line (e.g. `pkill -f "server/dist/index.js"` or `"wrangler pages dev"`) — it kills the shell running the command (exit -1) and the rest of the chain never runs. Kill by PID from `ss -ltnp | grep :PORT` instead.
 
 ## Grade-level validation
 `server/src/middleware/validation.ts` lowercases, trims, strips a trailing `" grade"`, then requires an **exact** match against the allow-list (`k`, `1`..`12`, `1st`..`12th`, `kindergarten`, `elementary`, `middle school`, `high school`). All 13 dropdown labels (`Kindergarten`, `1st Grade` … `12th Grade`) are accepted (verified in PR #6; before it, only `Kindergarten` worked). Junk like `e`, `99th Grade`, `"   "`, `grade`, or a >20-char string returns 400 `Invalid request data` with `Invalid grade level…` / `Grade level must be 20 characters or less`.
 
 ## Rate limiting during testing
-`server/src/middleware/rateLimiting.ts`: 10 worksheet requests/hour and `express-slow-down` adds `hits * 2s` (up to 30s) after the 3rd request, keyed by **IP + User-Agent**. Long-hanging curl requests are usually this, not a hang. Trick: when sweeping many payloads (e.g. all 13 grades), send a **unique `User-Agent` per request** (`curl -A sweep-agent-$i`) so each gets its own bucket and runs instantly; use a single fixed UA when you actually want to demonstrate the 2s/4s/… delays and the 429.
+`server/src/middleware/rateLimiting.ts`: 10 worksheet requests/hour and `express-slow-down` adds `hits * 2s` (up to 30s) after the 3rd request, keyed by **IP only** (the old IP+User-Agent keying — and the unique-UA-per-request sweep trick it enabled — was removed as a security fix in PR #12; rotating UAs no longer resets the bucket). Long-hanging curl requests are usually this, not a hang. Localhost curl (`::ffff:127.0.0.1`) and the browser (`::1`) land in **different buckets**, so curl sweeps won't 429 the browser session and vice versa; to sweep many payloads without delays, restart the API server between batches to reset the in-memory buckets.
 
 ## Print / PDF export
 `Print Worksheet` calls `window.print()`. In automated Chrome this **blocks the CDP session**, so browser tool calls start failing. Capture the preview with `DISPLAY=:0 scrot -o file.png` and dismiss with `DISPLAY=:0 xdotool key Escape`; the browser tool recovers afterwards.
