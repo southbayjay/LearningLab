@@ -1,26 +1,30 @@
 version: 2
 updates:
+  # Root npm workspace — also covers server/package.json (workspace member).
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     groups:
       npm-dependencies:
         patterns:
           - "*"
-  - package-ecosystem: "npm"
-    directory: "/server"
-    schedule:
-      interval: "weekly"
-    groups:
-      npm-dependencies:
-        patterns:
-          - "*"
+    ignore:
+      # typescript-eslint does not support TypeScript 7 yet.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # Track the Node 22 runtime (engines / .node-version / vercel.json).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+  # Client has its own lockfile (not part of the workspace).
   - package-ecosystem: "npm"
     directory: "/server/client"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     groups:
       npm-dependencies:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
