@@ -12,10 +12,6 @@ export const worksheetRateLimit = rateLimit({
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  // Skip requests that don't consume resources
-  skip: req => {
-    return req.path === '/api/health';
-  },
 });
 
 // Progressive delay for worksheet requests to discourage rapid requests
