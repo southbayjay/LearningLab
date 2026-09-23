@@ -62,6 +62,11 @@ const validGradeLevels = [
   'High School',
 ];
 
+// Letters, digits, spaces and light punctuation only. Keeps quotes, braces,
+// colons and newlines (the raw material of prompt injection) out of the
+// value that is interpolated into the model prompt.
+const TOPIC_PATTERN = /^[\p{L}\p{N} ,.'&()-]+$/u;
+
 // Content validation functions
 const validateGradeLevel = (grade: string): boolean => {
   // Accepts both bare grades ("3rd", "3") and the labels the UI sends ("3rd Grade")
@@ -90,6 +95,13 @@ const validateTopicContent = (topic: string): { isValid: boolean; reason?: strin
     return {
       isValid: false,
       reason: 'Topic must be at least 3 characters long and descriptive.',
+    };
+  }
+
+  if (!TOPIC_PATTERN.test(topic)) {
+    return {
+      isValid: false,
+      reason: "Topic may only contain letters, numbers, spaces and , . ' & ( ) - characters.",
     };
   }
 
