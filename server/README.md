@@ -1,193 +1,64 @@
 # LearningLab Server
 
-This is the backend server for LearningLab, an AI-Powered Reading Comprehension Worksheet Generator.
+Express 5 + TypeScript API for LearningLab, used for local development and for self-hosting on a Node server. Production runs on Cloudflare Pages Functions (`../functions/api`), which mirror this API.
 
-## Prerequisites
+See the [root README](../README.md) for setup, environment variables and deployment.
 
-- Node.js >= 16.0.0
-- npm >= 7.0.0
-- TypeScript >= 4.7.0
-
-## Getting Started
-
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/learninglab.git
-   cd learninglab/server
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Create a `.env` file in the server root directory and add the required environment variables:
-   ```env
-   # Server Configuration
-   PORT=3000
-   NODE_ENV=development
-   
-   # CORS Configuration
-   CORS_ORIGIN=http://localhost:5173
-   
-   # OpenAI Configuration
-   OPENAI_API_KEY=your_openai_api_key
-   ```
-
-### Development
-
-To start the development server with hot-reload:
-
-```bash
-npm run dev
-```
-
-This will start the server with nodemon, which will automatically restart the server when files change.
-
-### Building for Production
-
-To build the application for production:
-
-```bash
-npm run build
-```
-
-This will compile the TypeScript code to JavaScript in the `dist` directory.
-
-### Running in Production
-
-To start the application in production mode:
-
-```bash
-npm start
-```
-
-## Project Structure
+## Layout
 
 ```
-server/
-├── src/                    # Source files
-│   ├── config/            # Configuration files
-│   ├── controllers/       # Route controllers
-│   ├── middleware/        # Custom middleware
-│   ├── models/            # Database models
-│   ├── routes/            # API routes
-│   ├── services/          # Business logic
-│   ├── types/             # TypeScript type definitions
-│   ├── utils/             # Utility functions
-│   ├── app.ts             # Express application setup
-│   └── index.ts           # Application entry point
-├── client/                # Frontend React application
-├── public/                # Static files (served in production)
-├── .env                   # Environment variables
-├── .eslintrc.cjs          # ESLint configuration
-├── .prettierrc            # Prettier configuration
-├── package.json           # Project dependencies and scripts
-└── tsconfig.json          # TypeScript configuration
+src/
+├── config/        # server/.env loading, OpenAI settings
+├── controllers/   # POST /api/generate-worksheet
+├── middleware/    # validation (Zod), rate limiting, error handling
+├── routes/
+├── services/      # OpenAI call and prompt
+├── types/
+└── utils/
+client/            # React front end (separate lockfile)
 ```
 
-## API Documentation
+## Commands (run from `server/`)
 
-### Health Check
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | `tsx watch` with hot reload on port 3001 |
+| `npm run build:server` | Compile to `dist/` |
+| `npm start` | Run `dist/index.js` |
+| `npm test` | Node test runner (`src/**/*.test.ts`) |
+| `npm run lint` | ESLint with auto-fix |
+| `npm run format` | Prettier |
+| `npx tsc --noEmit -p tsconfig.eslint.json` | Typecheck including tests |
 
-- **GET /api/health**
-  - Description: Check if the API is running
-  - Response:
-    ```json
-    {
-      "status": "ok",
-      "timestamp": "2023-05-19T17:30:00.000Z"
-    }
-    ```
+## API
 
-### Error Handling
+### `GET /api/health`
 
-The API uses standard HTTP status codes to indicate the success or failure of an API request.
-
-- `200 OK` - The request was successful
-- `400 Bad Request` - The request was invalid
-- `401 Unauthorized` - Authentication is required
-- `403 Forbidden` - The user doesn't have permission to access the resource
-- `404 Not Found` - The requested resource was not found
-- `500 Internal Server Error` - An error occurred on the server
-
-## Testing
-
-To run tests:
-
-```bash
-npm test
+```json
+{ "status": "ok", "timestamp": "2025-01-01T00:00:00.000Z", "environment": "development" }
 ```
 
-## Linting and Formatting
+### `POST /api/generate-worksheet`
 
-To check for linting errors:
+Request (JSON, max 1 KB):
 
-```bash
-npm run lint
+```json
+{ "gradeLevel": "3rd Grade", "topic": "Volcanoes", "complexity": "medium" }
 ```
 
-To automatically fix linting errors:
+- `gradeLevel`: `Kindergarten`, `1st Grade` … `12th Grade` (also `K`, `1`-`12`, `Elementary`, `Middle School`, `High School`)
+- `topic`: 3-100 characters; inappropriate and spam-like topics are rejected
+- `complexity`: optional, `easy` | `medium` | `hard`
 
-```bash
-npm run lint:fix
+Response `200`:
+
+```json
+{
+  "title": "...",
+  "passage": "...",
+  "multipleChoice": [{ "question": "...", "options": ["...", "..."], "answer": "..." }],
+  "shortAnswer": [{ "question": "...", "answer": "..." }]
+}
 ```
 
-To format code according to Prettier:
-
-```bash
-npm run format
-```
-
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| PORT | Port the server will run on | 3000 |
-| NODE_ENV | Application environment (development, production) | development |
-| CORS_ORIGIN | Allowed CORS origin | http://localhost:5173 |
-| OPENAI_API_KEY | OpenAI API key | - |
-
-## Deployment
-
-### Docker
-
-Build the Docker image:
-
-```bash
-docker build -t learninglab-server .
-```
-
-Run the Docker container:
-
-```bash
-docker run -p 3000:3000 --env-file .env learninglab-server
-```
-
-### PM2
-
-Install PM2 globally:
-
-```bash
-npm install -g pm2
-```
-
-Start the application with PM2:
-
-```bash
-NODE_ENV=production pm2 start dist/index.js --name learninglab-server
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Errors: `400` invalid input, `413` body too large, `429` rate limited (`RateLimit-*` headers), `500` upstream failure (details are never forwarded to the client).

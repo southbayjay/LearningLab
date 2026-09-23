@@ -11,6 +11,7 @@
     "build:client": "cd server/client && npm run build",
     "build:server": "cd server && npm run build",
     "start": "cd server && npm run start",
+    "test": "node --test \"test/**/*.test.mjs\" && npm test --workspace server",
     "preview": "cd server && npm run preview"
   },
   "workspaces": [

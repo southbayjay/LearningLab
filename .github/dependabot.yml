@@ -13,7 +13,7 @@ updates:
       # typescript-eslint does not support TypeScript 7 yet.
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
-      # Track the Node 22 runtime (engines / .node-version / vercel.json).
+      # Track the Node 22 runtime (engines / .node-version).
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
   # Client has its own lockfile (not part of the workspace).
@@ -28,3 +28,7 @@ updates:
     ignore:
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"

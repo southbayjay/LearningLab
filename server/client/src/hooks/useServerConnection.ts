@@ -7,7 +7,7 @@ interface ServerConnectionState {
 }
 
 export const useServerConnection = (): ServerConnectionState => {
-  const [serverPort, setServerPort] = useState<number | null>(3000); // Always assume server is available in production
+  const [serverPort, setServerPort] = useState<number | null>(3001); // Always assume server is available in production
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export const useServerConnection = (): ServerConnectionState => {
         const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.health}`);
         if (response.ok) {
           console.log('Server health check passed');
-          setServerPort(3000);
+          setServerPort(3001);
           setError(null);
         }
       } catch (err) {

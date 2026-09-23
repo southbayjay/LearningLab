@@ -22,7 +22,7 @@ export default [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: './tsconfig.json',
+        project: './tsconfig.eslint.json',
       },
       globals: {
         ...globals.node,
@@ -35,7 +35,7 @@ export default [
     settings: {
       'import/resolver': {
         typescript: {
-          project: './tsconfig.json',
+          project: './tsconfig.eslint.json',
         },
       },
     },
