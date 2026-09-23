@@ -1,6 +1,6 @@
 # Cloudflare Pages configuration
 name = "learninglab"
-compatibility_date = "2023-12-01"
+compatibility_date = "2026-01-01"
 
 [build]
 command = "npm run build:client"
@@ -16,10 +16,14 @@ NODE_ENV = "production"
 # Optional variables:
 # - ALLOWED_ORIGINS: comma-separated extra origins allowed to call /api/*
 #   (same-origin requests are always allowed)
-# Optional bindings:
-# - KV namespace `RATE_LIMIT_KV`: enables per-IP rate limiting of
+# - RATE_LIMIT_FAIL_OPEN: set to "true" to allow requests when RATE_LIMIT_KV
+#   is missing/unavailable (default: refuse with 503 so a misconfigured
+#   deployment cannot run unmetered against the OpenAI account)
+# Required bindings:
+# - KV namespace `RATE_LIMIT_KV`: per-IP rate limiting of
 #   /api/generate-worksheet (10 requests / hour, mirrors the Express server).
-#   Without it the function logs a warning and applies no limit.
+#   KV is eventually consistent, so also add a WAF rate-limiting rule on
+#   /api/* for a hard edge limit.
 #
 # For local testing with `wrangler pages dev`, uncomment:
 # [[kv_namespaces]]
