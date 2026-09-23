@@ -1,5 +1,4 @@
 // @ts-nocheck
-// Simplified Vite configuration for Vercel deployment
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -31,12 +30,11 @@ export default defineConfig({
     strictPort: true, // Exit if port is already in use
     open: true, // Open browser on server start
     proxy: {
-      // Proxy API requests to the backend server
+      // Proxy API requests to the Express dev server (src/config/constants.ts
+      // talks to it directly in dev; the proxy keeps `curl localhost:5173/api/*` working)
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3001',
         changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },

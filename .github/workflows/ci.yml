@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -14,9 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .node-version
           cache: npm
@@ -31,8 +36,8 @@ jobs:
         run: npm ci
         working-directory: server/client
 
-      - name: Typecheck server
-        run: npx tsc --noEmit
+      - name: Typecheck server (incl. tests)
+        run: npx tsc --noEmit -p tsconfig.eslint.json
         working-directory: server
 
       - name: Lint server
@@ -43,6 +48,9 @@ jobs:
         run: npx tsc --noEmit
         working-directory: server/client
 
+      - name: Test (Cloudflare function + server)
+        run: npm test
+
       - name: Build client
         run: npm run build
 
@@ -50,19 +58,13 @@ jobs:
         run: npx tsc
         working-directory: server
 
-      - name: Serverless handlers load
-        run: |
-          node -e "const h = require('./api/generate-worksheet.js'); if (typeof h !== 'function') process.exit(1)"
-          node --input-type=module -e "import('./functions/api/generate-worksheet.js').then(m => { if (typeof m.onRequestPost !== 'function') process.exit(1) })"
-        env:
-          OPENAI_API_KEY: ci-dummy
-
       - name: Production smoke test
         run: |
           NODE_ENV=production PORT=3001 OPENAI_API_KEY=ci-dummy node server/dist/index.js &
           for i in $(seq 1 20); do curl -sf localhost:3001/api/health && break; sleep 1; done
           curl -sf localhost:3001/api/health
           curl -sf localhost:3001/ | grep -q '<div id="root"'
+          curl -sf -o /dev/null localhost:3001/favicon.svg
           code=$(curl -s -o /dev/null -w '%{http_code}' -X POST localhost:3001/api/generate-worksheet -H 'content-type: application/json' -d '{"gradeLevel":"99th","topic":"x"}')
           test "$code" = "400"
           kill %1

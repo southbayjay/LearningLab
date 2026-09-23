@@ -13,14 +13,6 @@ node_modules/
 /build
 /server/dist
 /client/dist
-.next/
-.vercel/
-
-# Next.js specific
-learninglab-nextjs/node_modules/
-learninglab-nextjs/.next/
-learninglab-nextjs/.vercel/
-learninglab-nextjs/dist/
 
 # Logs
 logs
@@ -54,8 +46,7 @@ coverage/
 npm-debug.log*
 
 # Local development
-.serverless/
-.serverless_plugins/
+.wrangler/
 
 # IDE
 *.sublime-workspace

@@ -11,7 +11,7 @@
     "build": "npm run build:client && npm run build:server",
     "build:client": "cd client && npm install && npm run build",
     "build:server": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "preview": "NODE_ENV=production npm run build && node dist/index.js",
     "clean": "rm -rf dist node_modules && cd client && rm -rf node_modules",
     "lint": "eslint . --fix",
