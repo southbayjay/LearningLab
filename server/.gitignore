@@ -87,6 +87,8 @@ dist
 # Gatsby files
 .cache/
 public
+# Vite static assets (copied verbatim into client/dist)
+!client/public
 
 # vuepress build output
 .vuepress/dist

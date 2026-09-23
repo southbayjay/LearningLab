@@ -1,6 +1,19 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 
+import { IS_PRODUCTION } from '../config/index.js';
 import { AppError, AppErrorInterface } from '../utils/AppError.js';
+
+// Client-side body errors raised by express.json (body-parser `type` codes).
+const BODY_PARSER_ERRORS: Record<string, { statusCode: number; message: string }> = {
+  'entity.parse.failed': { statusCode: 400, message: 'Request body must be valid JSON' },
+  'entity.too.large': { statusCode: 413, message: 'Request payload must be less than 1KB' },
+  'encoding.unsupported': { statusCode: 415, message: 'Unsupported content encoding' },
+  'charset.unsupported': { statusCode: 415, message: 'Unsupported charset' },
+  'entity.verify.failed': { statusCode: 403, message: 'Request body failed verification' },
+  'request.aborted': { statusCode: 400, message: 'Request aborted' },
+  'request.size.invalid': { statusCode: 400, message: 'Request size did not match Content-Length' },
+  'parameters.too.many': { statusCode: 413, message: 'Too many parameters' },
+};
 
 // Error handling middleware with proper type annotations
 export const errorHandler: ErrorRequestHandler = (
@@ -22,7 +35,7 @@ export const errorHandler: ErrorRequestHandler = (
   };
 
   // Log error in development
-  if (process.env.NODE_ENV === 'development') {
+  if (!IS_PRODUCTION) {
     console.error('❌ Error:', {
       message: error.message,
       stack: error.stack,
@@ -35,6 +48,16 @@ export const errorHandler: ErrorRequestHandler = (
   }
 
   // Handle different types of errors
+  const bodyError = typeof err.type === 'string' ? BODY_PARSER_ERRORS[err.type] : undefined;
+  if (bodyError) {
+    res.status(bodyError.statusCode).json({
+      status: 'error',
+      error: 'Invalid request',
+      message: bodyError.message,
+    });
+    return next();
+  }
+
   if (error.name === 'ValidationError') {
     res.status(400).json({
       status: 'error',
@@ -90,7 +113,7 @@ export const errorHandler: ErrorRequestHandler = (
   res.status(statusCode).json({
     status: 'error',
     message: 'Something went wrong!',
-    ...(process.env.NODE_ENV === 'development' && {
+    ...(!IS_PRODUCTION && {
       error: error.message,
       stack: error.stack,
     }),

@@ -4,9 +4,10 @@ import { fileURLToPath } from 'url';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
+import helmet from 'helmet';
 
 // Import configuration and routes
-import { PORT, CORS_ORIGIN, NODE_ENV } from './config/index.js';
+import { PORT, CORS_ORIGIN, NODE_ENV, IS_PRODUCTION, TRUST_PROXY } from './config/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { generalRateLimit, requestSizeLimit, usageMonitor } from './middleware/rateLimiting.js';
 import worksheetRoutes from './routes/worksheet.js';
@@ -46,7 +47,8 @@ process.on('unhandledRejection', (reason: unknown) => {
 
 // Define app first
 const app = express();
-const isProduction = NODE_ENV === 'production';
+const isProduction = IS_PRODUCTION;
+app.set('trust proxy', TRUST_PROXY);
 
 // Declare server variable with proper type
 type ServerType = ReturnType<typeof app.listen>;
@@ -66,7 +68,36 @@ process.on('SIGTERM', () => {
 
 // App and server configuration moved above server declaration
 
-// Security middleware (applied first)
+// Security headers. The SPA injects a <style> element for print rules and
+// Tailwind emits no inline scripts, so only styles need 'unsafe-inline'.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        'script-src': ["'self'"],
+        'style-src': ["'self'", "'unsafe-inline'"],
+        'img-src': ["'self'", 'data:'],
+        'connect-src': ["'self'"],
+        'frame-ancestors': ["'none'"],
+        'form-action': ["'self'"],
+        'upgrade-insecure-requests': isProduction ? [] : null,
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+  })
+);
+
+// CORS configuration (before rate limiting so preflights are not counted)
+const corsOptions = {
+  origin: CORS_ORIGIN,
+  credentials: true,
+  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+};
+
+app.use(cors(corsOptions));
+
+// Security middleware
 app.use(requestSizeLimit);
 app.use(usageMonitor);
 app.use(generalRateLimit);
@@ -79,16 +110,6 @@ app.use((req: Request, _res: Response, next) => {
 
 // Middleware
 app.use(express.json({ limit: '1kb' })); // Enforce JSON size limit
-app.use(express.urlencoded({ extended: true, limit: '1kb' })); // Enforce URL encoded size limit
-
-// CORS configuration
-const corsOptions = {
-  origin: CORS_ORIGIN,
-  credentials: true,
-  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
-};
-
-app.use(cors(corsOptions));
 
 // Simple health check endpoint
 app.get('/api/health', (_req: Request, res: Response) => {
@@ -199,15 +220,5 @@ server = app.listen(PORT, () => {
     console.log(`🔗 Frontend dev server: http://localhost:5173`);
     console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
     console.log(`🔗 Health Check: http://localhost:${PORT}/api/health`);
-  }
-});
-
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err: Error) => {
-  console.error('Unhandled Rejection:', err);
-  if (server) {
-    server.close(() => process.exit(1));
-  } else {
-    process.exit(1);
   }
 });

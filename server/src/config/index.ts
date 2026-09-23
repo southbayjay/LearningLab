@@ -24,8 +24,23 @@ if (missingVars.length > 0) {
 }
 
 export const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
-export const NODE_ENV = process.env.NODE_ENV || 'development';
+export const NODE_ENV = process.env.NODE_ENV || 'production';
+export const IS_PRODUCTION = NODE_ENV === 'production';
 export const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+
+// Express `trust proxy` setting. Accepts the same values Express does:
+// a hop count ("1"), "true"/"false", or a comma-separated list of
+// addresses/CIDRs/presets ("loopback, 10.0.0.0/8"). Defaults to one hop in
+// production (TLS-terminating proxy in front) and none in development.
+const parseTrustProxy = (value: string | undefined): boolean | number | string => {
+  if (value === undefined || value === '') return IS_PRODUCTION ? 1 : false;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'true') return true;
+  if (normalized === 'false') return false;
+  if (/^\d+$/.test(normalized)) return parseInt(normalized, 10);
+  return value.trim();
+};
+export const TRUST_PROXY = parseTrustProxy(process.env.TRUST_PROXY);
 
 // Initialize OpenAI with explicit configuration
 export const openai = new OpenAI({
