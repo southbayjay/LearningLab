@@ -23,7 +23,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "openai": "^7.17.0",
+    "openai": "^7.20.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
